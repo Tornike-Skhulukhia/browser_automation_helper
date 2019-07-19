@@ -413,7 +413,7 @@ class BrowserHelper:
         # if no argument supplied, last found element will be used
         if not elem:
             # elem = self.elem
-            elem = br.css1("body")
+            elem = self.css1("body")
 
         key = getattr(self.keys, key.upper())
         elem.send_keys(key)
