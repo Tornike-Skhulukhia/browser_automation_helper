@@ -710,6 +710,189 @@ class BrowserHelper:
         # print(status)
         return status
 
+    def r(self):
+        '''
+        just refresh easier
+        '''
+        self.br.refresh()
+
+    def make_editable(self):
+        '''
+        make page editable, using javascript command,
+        just for fun :-)
+        '''
+        self.js("document.designMode='on';")
+
+
+    def _get_js_result_nodes_generation_code(self, css_or_xpath_sel, print_command=False):
+        '''
+        returns code that can be evaluated in js to get js array
+        named nodes, containing elements using 
+        matching given css or xpath selector.
+
+        So, after executing result of that function in javascript,
+        we will have varible node, containing all matches we want.
+
+        if print_command argument is True, 
+        command will also be printed.
+        '''
+        # which selection method do we have here
+        sel_type = "css"
+        if css_or_xpath_sel.startswith("/"):
+            sel_type = "xpath"
+
+        if sel_type == "xpath":
+            # ! test ... !
+            # do not add var before variable, to use nodes later
+            answer = (f'nodes = document.evaluate(`{css_or_xpath_sel}`, '
+                      'document, null, XPathResult.FIRST_ORDERED_NODE_TYPE,'
+                      ' null).singleNodeValue; ')
+        else:
+            # do not add var before variable, to use nodes later
+            answer = f'nodes = document.querySelectorAll(`{css_or_xpath_sel}`); '
+
+        # useful for debugging
+        if print_command:
+            print(answer)
+
+        return answer
+
+    def _change_selection_look(self, css_or_xpath_sel, 
+                               style="normal", print_command=False):
+        '''
+        change how selection matches look on browser,
+        for now, just make them ...
+
+        later may add more style numbers to make 
+        different changes, or even more control, if necessary
+        '''
+        #############################################################
+        if style == "crazy":
+            import random as r
+
+            # to make selections more fun on each case
+            _colors = ["red",     "green",       "blue",
+                       "lime",    "orangered",   "yellow",
+                       "brown",   "coral",       "hotpink", "magenta", ]
+            color = r.choice(_colors)
+
+            # do not change background too often
+            # b_color = r.choice(["black", "white"])  # not very good, uncomment
+
+            font_size = f'{r.randint(20, 40)}px'
+
+            _lines = ["underline","overline", "line-through", "underline overline"]
+            _styles = ["solid", "double", "dotted", "dashed", "wavy"]
+
+            text_decoration = (f'{r.choice(_lines)} {r.choice(_colors)} '
+                               f'{r.choice(_styles)}')
+
+            font_weight = r.randint(1, 9) * 100
+            text_shadow = (f'{r.randint(-30, 30)}px '
+                           f'{r.randint(-30, 30)}px '
+                           f'{r.randint(3,   20)}px '
+                           f'{r.choice(_colors)} ')
+
+            _timing = ["linear", "ease", "ease-in", "ease-out", "ease-in-out"]
+            transition = f"all {r.choice(_timing)} {r.randint(1, 20) * 1000}ms"
+
+
+            _transforms = ["translate", "rotate", "scale", "skew"]
+            _transform_type = r.choice(_transforms)
+
+            if _transform_type == "translate":
+                _t1 = r.randint(-100, 100)  # from -100 to 100
+                _t2 = r.randint(-100, 100)  # from -100 to 100
+
+                transform = f"translate({_t1}px, {_t2}px);"
+
+            elif _transform_type == "rotate":
+                transform = f"rotate({r.randint(-45, 45)}deg);"
+
+            elif _transform_type == "scale":
+                _s1 = r.randint(5, 20) / 10  # 0.5 through 2
+                _s2 = r.randint(5, 20) / 10  # 0.5 through 2
+
+                transform = f"scale({_s1, _s2});"
+
+            elif _transform_type == "skew":
+                _s1_ = r.randint(-180, 180)
+                _s2_ = r.randint(-180, 180)
+
+                transform = f"skew({_s1_}deg, {_s2_})deg;"
+
+            # do not overcomplicate to use all sides separate borders...
+            _b_styles = ["dotted",   "dashed", 
+                         "solid",    "double", 
+                         "groove",   "ridge", 
+                         "inset",    "outset", 
+                         "none",     "hidden"]
+
+            border = (f"{r.randint(1, 10)}px {r.choice(_b_styles)}"
+                      f" {r.choice(_colors)} ")
+
+            border_radius = r.randint(1, 40)
+
+        else:
+            # normal cases
+            color = "lime"
+            font_size = "30px"
+            text_decoration = "underline"
+            font_weight = 400
+            text_shadow = "2px 5px 2px red"
+            transition = "all ease-in-out 100ms"
+            transform = ""
+            border = ""
+            border_radius = ""
+            # b_color = ""   # not very good, uncomment
+        #############################################################
+
+        # create arrays code
+        create_nodes_js = self._get_js_result_nodes_generation_code(
+                                                        css_or_xpath_sel)
+
+        # add transitions first
+        transition_js = (' nodes.forEach(function(i){i.setAttribute( '
+             f' "transition", "{transition}  !important; "){"}"})')
+        self.js(create_nodes_js + transition_js)
+        if print_command:
+            print(create_nodes_js + transition_js)
+
+        # add code to change elements styling
+        styles_js = (' nodes.forEach(function(i){i.setAttribute( '
+                      ' "style", '
+                         f'" color:              {color}                 !important; '
+                         f'  font-size:          {font_size}             !important; '
+                         f'  text-decoration:    {text_decoration}       !important; '
+                         f'  font-weight:        {font_weight}           !important; '
+                         f'  text-shadow:        {text_shadow}           !important; '
+                         f'  transform:          {transform}             !important; '
+                         f'  border:             {border}                !important; '
+                         f'  border-radius:      {border_radius}         !important; '
+                         # f'  !important;'  # to add more styles
+                         '")})')
+        # useful for degugging
+        if print_command:
+            print(styles_js)
+
+        self.js(styles_js)
+
+
+    def _dance(self, selector="body", interval=0.3, print_command=False):
+        '''
+        fun method to change looks of each matched
+        element in browser, default selector 
+        argument is body, but *, p, a or any other could
+        be used.
+
+        interval argument(default=0.3) controls intervals 
+        between changes on a page
+        '''
+        while True: 
+            time.sleep(interval)
+            self._change_selection_look(selector, 
+                                        style="crazy", 
+                                        print_command=print_command)
 
 ####################################################
 # More cool functions here
