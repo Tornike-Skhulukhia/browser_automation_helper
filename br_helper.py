@@ -10,6 +10,7 @@ DRIVER_PATH = ""
 import time
 from bs4 import BeautifulSoup as bs
 
+
 class BrowserHelper:
     ''' class to help automate browser '''
     def __init__(self, browser="chrome", driver_path=None,
@@ -184,10 +185,9 @@ class BrowserHelper:
             . hide_images - True/False - boolean
             . disable_javascript - True/False - boolean
             . proxy - ip:port - string
-            . user-data-dir - path/to/chrome/profile - string
+            . user_data_dir - path/to/chrome/profile - string
             . disable_infobars - show or not infobars(default - False)
                               (including chrome is being...) - boolean
-
         '''
         if self.which_browser == "chrome":
             from selenium.webdriver.chrome.options import Options
@@ -204,9 +204,7 @@ class BrowserHelper:
                 # proxy
                 if key == "proxy":
                     self.browser_options.add_argument(
-                        f"--proxy-server=http://{value}")
-                    self.browser_options.add_argument(
-                        f"--proxy-server=https://{value}")
+                        f"--proxy-server={value}")
 
                 # window size
                 elif key == "window_size":
@@ -245,9 +243,9 @@ class BrowserHelper:
                         self.browser_options.add_argument('--headless')
 
                 # chrome profile to use
-                elif key == "user-data-dir":
+                elif key == "user_data_dir":
                     self.browser_options.add_argument(
-                                f'user-data-dir={value}')
+                                f'user_data_dir={value}')
 
                 else:
                     pass
@@ -277,28 +275,58 @@ class BrowserHelper:
         '''just close browser'''
         self.br.quit()
 
-    def css(self, selector):
-        '''find all matches by css selector'''
-        return self.br.find_elements_by_css_selector(selector)
+    def _get_interactables(self, webelements):
+        '''
+        get list of webelements(selected with xpath/css)
+        and return only those, which seems interactable
+        '''
+        return [i for i in webelements if i.is_displayed() and i.is_enabled()]
 
-    def css1(self, selector):
+    def css(self, selector, interactable=False):
+        '''
+        find all matches by css selector.
+        if interactable is set to True, only
+        possibly interactable elements will be returned
+        '''
+        matches = self.br.find_elements_by_css_selector(selector)
+
+        if interactable:
+            matches = self._get_interactables(matches)
+
+        return matches
+
+    def css1(self, selector, interactable=False):
         ''' find first element by css selector'''
-        elem = self.br.find_element_by_css_selector(selector)
+        elem = self.css(selector, interactable)[0]
         self.elem = elem  # to use later in clicks
         return elem
 
-    def xpath(self, selector):
-        ''' find all matches by xpath'''
-        return self.br.find_elements_by_xpath(selector)
+    def xpath(self, selector, interactable=False):
+        '''
+        find all matches by xpath selector.
+        if interactable is set to True, only
+        possibly interactable elements will be returned
+        '''
+        matches = self.br.find_elements_by_xpath(selector)
 
-    def xpath1(self, selector):
+        if interactable:
+            matches = self._get_interactables(matches)
+
+        return matches
+
+
+    def xpath1(self, selector, interactable=False):
         ''' find first element by xpath'''
-        elem = self.br.find_element_by_xpath(selector)
+        elem = self.xpath(selector, interactable)[0]
         self.elem = elem
         return elem
 
+
+
+
     def find(self, text, ignore_case=False,
-             tag="*", all_=False, exact=False, interactable=True):
+             tag="*", all_=False, exact=False,
+             interactable=True, print_selector=False):
         '''
         get element on a page containing given text
         (not exact text match, just
@@ -348,7 +376,9 @@ class BrowserHelper:
                 sel = (f"""//{tag}[contains(translate(text(), '{uppers}', """
                        f"""'{lowers}'), '{text.lower()}')]""")
 
-        # print(sel)
+        # print selector if we want
+        if print_selector:
+            print(sel)
 
         # do not check for interactability
         if not interactable:
@@ -358,10 +388,10 @@ class BrowserHelper:
                 answer = self.xpath1(sel)
 
         else:
-            answer = self.xpath(sel)          
+            answer = self.xpath(sel)
 
-            answer = [i for i in answer if 
-                          i.is_displayed() and i.is_enabled()]
+            answer = [i for i in answer if
+                      i.is_displayed() and i.is_enabled()]
             if not all_:
                 # raise error if no interactable element found
                 answer = answer[0]
@@ -398,7 +428,6 @@ class BrowserHelper:
         '''
             Log information
         '''
-
         with open(self.log_file, "a") as f:
             line = f'{time.ctime()} | {text}\n'
             f.write(line)
@@ -427,22 +456,35 @@ class BrowserHelper:
         '''
         self.get("chrome://downloads/", add_protocol=False)
 
-    def show_history(self):
+    def show_history(self, q=None):
         '''
         show history tab in browser.
 
         for now, works on chrome only
         '''
-        # breakpoint()
-        self.get("chrome://history/", add_protocol=False)
+        url = "chrome://history/"
 
-    def show_settings(self):
-        '''
-        show settings tab in browser.
+        if q is not None:
+            from urllib.parse import quote
+            url += f"?q={quote(q)}"
 
-        for now, works on chrome only
+        self.get(url, add_protocol=False)
+
+    def show_settings(self, q=None):
         '''
-        self.get("chrome://settings/", add_protocol=False)
+        show settings tab in browser,
+        for now, works on chrome only.
+
+        If q argument is passed, it will be used to filter
+        results on page. 
+        '''
+        url = "chrome://settings/"
+
+        if q is not None:
+            from urllib.parse import quote
+            url += f"?search={quote(q)}"
+
+        self.get(url, add_protocol=False)
 
     def show_infos(self):
         '''
@@ -494,7 +536,7 @@ class BrowserHelper:
         ##################################################
         '''
         soup = bs(self.br.page_source, "lxml")
-        return soup.select(selector)[0]
+        return self.bcss(selector)[0]
 
     def js(self, comm):
         '''execute given command with javascript'''
@@ -538,6 +580,136 @@ class BrowserHelper:
             url = f'duckduckgo.com/?q={q}'
 
         self.get(url)
+
+    def _css_xpath(self, selector, interactable=False):
+        '''
+        gets css or xpath selector method based
+        on selector(differentiate xpath with /),
+        call it and return result
+        '''
+        method = self.xpath if selector.startswith("/") else self.css
+        return method(selector, interactable)
+
+    def _css1_xpath1(self, selector, interactable=False):
+        return self._css_xpath(selector, interactable)[0]
+
+    def _print_error(self):
+        import traceback
+        print(traceback.format_exc())
+
+    def login(self, url, login_info=("username", "password"),
+              selectors=None, seconds=1):
+        '''
+        Function tries to log us on a website and returns True,
+        if it thinks, we did it successfully.
+
+        arguments:
+            1. url - login url(where username,
+                               password and submit is
+                                present in one page,
+                                so, sorry gmail for now)
+            2. login_info -
+                        list/set/tuple of username and password.
+                        default - ("username", "password")
+
+            3. selectors - list/set/tuple of css/xpath selectors,
+                            (if selector starts with /, we use xpath methods)
+                            . username - username/email selector
+                            . password - password selector
+                            . submit   - submit button selector
+                            . success_sel - 2 element tuple -
+                                    (args_for_method, check_method),
+                                    . args_for_method - method arguments to
+                                    use when checking element existence
+                                    on logged in page - string -
+                                        ex:
+                                            'arg_1, arg_2="abc"'
+
+                                    . method - specific method of this class
+                                    to use for search after page loads
+
+                                    selector of element which should be present
+                                    on page to say that login was successfull.
+
+                                    # thinking to make last selector easier
+                                    to get with find method of this class.
+
+                            # We should supply all of these, or None of these
+                            If not supplied, our simple predictionn logic
+                            will be used to find possible elements and if
+                            something goes wrong, function will return False
+            4. seconds - number of seconds to wait page to load completely
+                         (default = 1). We will make this  process dynamic & more reliable 
+                         in the future.
+        '''
+        # add optional argument in get to wait before page loads(later)
+
+        # logged in status
+        status = False
+        username, password = login_info
+
+        try:
+            self.get(url)
+            # later add more reliable method
+            # to let browser fully render js & load
+            time.sleep(seconds)
+
+            # generate possible selectors if necessary
+            _sel = ["username", "password", "submit"]
+
+            # selectors here does not include success check selector
+            if selectors is None:   # sequence may need refinements
+                _selectors = {
+                        _sel[0]: "input[type='email'], input[type='text']",
+                        _sel[1]: "input[type='password']",
+                        _sel[2]: "[type='submit']"}
+            else:
+                # small check
+                assert len(selectors) == 3
+
+                _selectors = {i: j for i, j in zip(_sel, selectors)}
+
+            # and create dictionary of
+            # selector - html element
+            elems = {}
+
+            for name_, sel_ in _selectors.items():
+                # select between xpath or css
+                # breakpoint()
+                elems[name_] = self._css1_xpath1(sel_, True)
+
+            # type data and press login
+            elems["username"].send_keys(username)
+            elems["password"].send_keys(password)
+            elems["submit"].click()
+            # later add more reliable method
+            time.sleep(seconds)
+
+            # check if logged in successfully
+            # if this selector is not present, check
+            # if password field  is still present
+            # on page - not very reliable, but for now
+            # should work in most cases
+
+            # user supplied case
+            if selectors:
+                args, check_method = selectors[-1]
+                try:
+                    if eval("""check_method(""" + args.strip() + """)"""):
+                        status = True
+                except:
+                    self._print_error()
+                    breakpoint()
+            # our prediction case
+            else:
+                if not self._css_xpath(_selectors["password"], True):
+                    status = True
+        except:
+            self._print_error()
+            breakpoint()
+        # print(status)
+        return status
+
 
 ####################################################
 # More cool functions here
