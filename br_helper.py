@@ -282,7 +282,8 @@ class BrowserHelper:
         '''
         return [i for i in webelements if i.is_displayed() and i.is_enabled()]
 
-    def css(self, selector, interactable=False):
+    def css(self, selector, interactable=False,
+            highlight=False, print_command=False):
         '''
         find all matches by css selector.
         if interactable is set to True, only
@@ -292,6 +293,13 @@ class BrowserHelper:
 
         if interactable:
             matches = self._get_interactables(matches)
+    
+        # makes identifying match numbers easier
+        print(str(len(matches)).center(20))
+
+        # highlight matches
+        if highlight:
+            self._change_selection_look(selector, print_command)
 
         return matches
 
@@ -301,7 +309,8 @@ class BrowserHelper:
         self.elem = elem  # to use later in clicks
         return elem
 
-    def xpath(self, selector, interactable=False):
+    def xpath(self, selector, interactable=False, 
+              highlight=False, print_command=False):
         '''
         find all matches by xpath selector.
         if interactable is set to True, only
@@ -311,6 +320,13 @@ class BrowserHelper:
 
         if interactable:
             matches = self._get_interactables(matches)
+
+        # makes identifying match numbers easier
+        print(str(len(matches)).center(20))
+
+        # highlight selected
+        if highlight:
+            self._change_selection_look(selector, print_command)
 
         return matches
 
@@ -326,7 +342,8 @@ class BrowserHelper:
 
     def find(self, text, ignore_case=False,
              tag="*", all_=False, exact=False,
-             interactable=True, print_selector=False):
+             interactable=True, print_selector=False,
+             highlight=False, print_command=False):
         '''
         get element on a page containing given text
         (not exact text match, just
@@ -380,11 +397,14 @@ class BrowserHelper:
         if print_selector:
             print(sel)
 
+        # highlight selection
+        self._change_selection_look(sel, print_command)
+
         # do not check for interactability
         if not interactable:
-            if all_:
-                answer = self.xpath(sel)
-            else:
+            answer = self.xpath(sel, print_command)
+
+            if not all_:
                 answer = self.xpath1(sel)
 
         else:
@@ -731,7 +751,7 @@ class BrowserHelper:
         matching given css or xpath selector.
 
         So, after executing result of that function in javascript,
-        we will have varible node, containing all matches we want.
+        we will have variable node, containing all matches we want.
 
         if print_command argument is True, 
         command will also be printed.
@@ -744,9 +764,11 @@ class BrowserHelper:
         if sel_type == "xpath":
             # ! test ... !
             # do not add var before variable, to use nodes later
-            answer = (f'nodes = document.evaluate(`{css_or_xpath_sel}`, '
-                      'document, null, XPathResult.FIRST_ORDERED_NODE_TYPE,'
-                      ' null).singleNodeValue; ')
+            answer = ('nodes = []; '
+                      f'results = document.evaluate(`{css_or_xpath_sel}`,'
+                      '                                          document); '
+                      'while (node = results.iterateNext())'
+                      '                               {nodes.push(node)}; ')
         else:
             # do not add var before variable, to use nodes later
             answer = f'nodes = document.querySelectorAll(`{css_or_xpath_sel}`); '
@@ -761,38 +783,47 @@ class BrowserHelper:
                                style="normal", print_command=False):
         '''
         change how selection matches look on browser,
-        for now, just make them ...
+        selections are saved in javascript as array, called nodes.
 
         later may add more style numbers to make 
-        different changes, or even more control, if necessary
+        different changes, or even more control, if necessary.
         '''
         #############################################################
-        if style == "crazy":
-            import random as r
+        import random as r
 
-            # to make selections more fun on each case
-            _colors = ["red",     "green",       "blue",
-                       "lime",    "orangered",   "yellow",
-                       "brown",   "coral",       "hotpink", "magenta", ]
+        _colors = ["red",     "green",       "blue",
+                   "lime",    "orangered",   "yellow",
+                   "brown",   "coral",       "hotpink", "magenta"]
+
+        if style == "crazy":
+
+            # to make selections more fun in each case
+            # font color
             color = r.choice(_colors)
 
             # do not change background too often
-            # b_color = r.choice(["black", "white"])  # not very good, uncomment
+            # b_color = r.choice(["black", "white"])  # not very good
 
+            # font size
             font_size = f'{r.randint(20, 40)}px'
 
+            # text decoration
             _lines = ["underline","overline", "line-through", "underline overline"]
             _styles = ["solid", "double", "dotted", "dashed", "wavy"]
 
             text_decoration = (f'{r.choice(_lines)} {r.choice(_colors)} '
                                f'{r.choice(_styles)}')
 
+            # font weight
             font_weight = r.randint(1, 9) * 100
+            
+            # text shadow
             text_shadow = (f'{r.randint(-30, 30)}px '
                            f'{r.randint(-30, 30)}px '
                            f'{r.randint(3,   20)}px '
                            f'{r.choice(_colors)} ')
 
+            # text transforms
             _timing = ["linear", "ease", "ease-in", "ease-out", "ease-in-out"]
             transition = f"all {r.choice(_timing)} {r.randint(1, 20) * 1000}ms"
 
@@ -821,6 +852,7 @@ class BrowserHelper:
 
                 transform = f"skew({_s1_}deg, {_s2_})deg;"
 
+            # borders
             # do not overcomplicate to use all sides separate borders...
             _b_styles = ["dotted",   "dashed", 
                          "solid",    "double", 
@@ -831,20 +863,24 @@ class BrowserHelper:
             border = (f"{r.randint(1, 10)}px {r.choice(_b_styles)}"
                       f" {r.choice(_colors)} ")
 
+            # border radius
             border_radius = r.randint(1, 40)
 
+            # letter spacing
+            letter_spacing = f"{r.randint(-5, 5)}px"
         else:
             # normal cases
-            color = "lime"
-            font_size = "30px"
+            color = r.choice(["#FFF", "#000", "#777", "#00F", "#0F0", "F00"])
+            font_size = ""
             text_decoration = "underline"
-            font_weight = 400
-            text_shadow = "2px 5px 2px red"
-            transition = "all ease-in-out 100ms"
+            font_weight = ""
+            text_shadow = "5px 5px 5px #FFF"
+            transition = "all ease-in-out 400ms"
             transform = ""
-            border = ""
+            border = f"1px dotted {r.choice(_colors)}"
             border_radius = ""
-            # b_color = ""   # not very good, uncomment
+            letter_spacing = "1px"
+            # b_color = ""   # not very good
         #############################################################
 
         # create arrays code
@@ -869,6 +905,7 @@ class BrowserHelper:
                          f'  transform:          {transform}             !important; '
                          f'  border:             {border}                !important; '
                          f'  border-radius:      {border_radius}         !important; '
+                         f'  letter-spacing:     {letter_spacing}        !important; '
                          # f'  !important;'  # to add more styles
                          '")})')
         # useful for degugging
