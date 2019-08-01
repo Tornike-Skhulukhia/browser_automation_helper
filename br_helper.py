@@ -3,7 +3,7 @@
 ########   Define your driver path here   #######
 #################################################
 
-DRIVER_PATH = ""
+DRIVER_PATH = "/home/tornike/Desktop/bin/chromedriver"
 
 #################################################
 
@@ -559,8 +559,20 @@ class BrowserHelper:
         return self.bcss(selector)[0]
 
     def js(self, comm):
-        '''execute given command with javascript'''
-        self.br.execute_script(comm)
+        '''
+        execute given command with javascript and get returned value
+        '''
+        return self.br.execute_script(comm)
+
+    def _zoom(self, to_percent):
+        '''
+        zoom to page using given number(%).
+        ex: _zoom(100) is default --> normal mode
+
+        # add specific element zoming ability later...
+        '''
+        self.js(f'document.body.style.zoom = "{to_percent}%" ')
+
 
     def google(self, s=None, domain="com"):
         '''
@@ -808,7 +820,8 @@ class BrowserHelper:
             font_size = f'{r.randint(20, 40)}px'
 
             # text decoration
-            _lines = ["underline","overline", "line-through", "underline overline"]
+            _lines = ["underline", "overline",
+                      "line-through", "underline overline"]
             _styles = ["solid", "double", "dotted", "dashed", "wavy"]
 
             text_decoration = (f'{r.choice(_lines)} {r.choice(_colors)} '
@@ -816,7 +829,7 @@ class BrowserHelper:
 
             # font weight
             font_weight = r.randint(1, 9) * 100
-            
+
             # text shadow
             text_shadow = (f'{r.randint(-30, 30)}px '
                            f'{r.randint(-30, 30)}px '
@@ -826,7 +839,6 @@ class BrowserHelper:
             # text transforms
             _timing = ["linear", "ease", "ease-in", "ease-out", "ease-in-out"]
             transition = f"all {r.choice(_timing)} {r.randint(1, 20) * 1000}ms"
-
 
             _transforms = ["translate", "rotate", "scale", "skew"]
             _transform_type = r.choice(_transforms)
@@ -854,10 +866,10 @@ class BrowserHelper:
 
             # borders
             # do not overcomplicate to use all sides separate borders...
-            _b_styles = ["dotted",   "dashed", 
-                         "solid",    "double", 
-                         "groove",   "ridge", 
-                         "inset",    "outset", 
+            _b_styles = ["dotted",   "dashed",
+                         "solid",    "double",
+                         "groove",   "ridge",
+                         "inset",    "outset",
                          "none",     "hidden"]
 
             border = (f"{r.randint(1, 10)}px {r.choice(_b_styles)}"
@@ -868,6 +880,10 @@ class BrowserHelper:
 
             # letter spacing
             letter_spacing = f"{r.randint(-5, 5)}px"
+
+            # zoom randomly
+            if r.randint(1, 5) == 5:
+                self._zoom(r.randint(30, 300))
         else:
             # normal cases
             color = r.choice(["#FFF", "#000", "#777", "#00F", "#0F0", "F00"])
@@ -889,25 +905,25 @@ class BrowserHelper:
 
         # add transitions first
         transition_js = (' nodes.forEach(function(i){i.setAttribute( '
-             f' "transition", "{transition}  !important; "){"}"})')
+                         f' "transition", "{transition}  !important; "){"}"})')
         self.js(create_nodes_js + transition_js)
         if print_command:
             print(create_nodes_js + transition_js)
 
         # add code to change elements styling
         styles_js = (' nodes.forEach(function(i){i.setAttribute( '
-                      ' "style", '
-                         f'" color:              {color}                 !important; '
-                         f'  font-size:          {font_size}             !important; '
-                         f'  text-decoration:    {text_decoration}       !important; '
-                         f'  font-weight:        {font_weight}           !important; '
-                         f'  text-shadow:        {text_shadow}           !important; '
-                         f'  transform:          {transform}             !important; '
-                         f'  border:             {border}                !important; '
-                         f'  border-radius:      {border_radius}         !important; '
-                         f'  letter-spacing:     {letter_spacing}        !important; '
-                         # f'  !important;'  # to add more styles
-                         '")})')
+                     ' "style", '
+                     f'" color:              {color}                 !important; '
+                     f'  font-size:          {font_size}             !important; '
+                     f'  text-decoration:    {text_decoration}       !important; '
+                     f'  font-weight:        {font_weight}           !important; '
+                     f'  text-shadow:        {text_shadow}           !important; '
+                     f'  transform:          {transform}             !important; '
+                     f'  border:             {border}                !important; '
+                     f'  border-radius:      {border_radius}         !important; '
+                     f'  letter-spacing:     {letter_spacing}        !important; '
+                     # f'  !important;'  # to add more styles
+                     '")})')
         # useful for degugging
         if print_command:
             print(styles_js)
