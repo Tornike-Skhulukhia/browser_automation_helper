@@ -3,7 +3,7 @@
 ########   Define your driver path here   #######
 #################################################
 
-DRIVER_PATH = "/home/tornike/Desktop/bin/chromedriver"
+DRIVER_PATH = ""
 
 #################################################
 
@@ -330,15 +330,11 @@ class BrowserHelper:
 
         return matches
 
-
     def xpath1(self, selector, interactable=False):
         ''' find first element by xpath'''
         elem = self.xpath(selector, interactable)[0]
         self.elem = elem
         return elem
-
-
-
 
     def find(self, text, ignore_case=False,
              tag="*", all_=False, exact=False,
@@ -418,31 +414,53 @@ class BrowserHelper:
 
         return answer
 
-    def get(self, url, add_protocol=True):
+    def get(self, url_or_urls, add_protocol=True, callback=False):
         '''
         load url page.
 
         if browser is not initialized yet, it will
         start with given options
 
-        if add_protocol is set to False(default=True),
-        exact url load will be tried,
-        otherwise, if url is not starting
-        with http:// or https:// , we will add http://.
-        This makes process of page retrieval easier,
-        as we do not need to type http:// every time,
-        just br.get("example.com") will work.
+        arguments:
+            1. url_or_urls - where to go, if it is a list,
+                            all urls will be loaded in sequence.
+
+            2. add_protocol - if set to False(default=True),
+                            exact url load will be tried,
+                            otherwise, if url is not starting
+                            with http:// or https:// , we will add http://.
+                            This makes process of page retrieval easier,
+                            as we do not need to type http:// every time,
+                            just br.get("example.com") will work.
+
+            3. callback - if supplied(Default=False) this function
+                          will be called after page loads
+                          with this class object as an argument.
+
+                          we may use it to parse and save data somewhere.
         '''
+
         # initialize browser
+        # breakpoint()
         self.initialize_browser_if_necessary()
+
+        # convert to list if it is string
+        if isinstance(url_or_urls, str):
+            url_or_urls = [url_or_urls]
 
         # add http:// if needed
         if add_protocol:
-            if url.split("//")[0].lower() not in ["http:", "https:"]:
-                url = "http://" + url
+            for index, url in enumerate(url_or_urls):
+                if url.split("//")[0].lower() not in ["http:", "https:"]:
+                    url_or_urls[index] = "http://" + url
 
-        # get page
-        self.br.get(url)
+        if callback:
+            for url in url_or_urls:
+                self.br.get(url)
+                callback(self)
+        else:
+            for url in url_or_urls:
+                self.br.get(url)
 
     def log_info(self, text):
         '''
@@ -930,7 +948,6 @@ class BrowserHelper:
 
         self.js(styles_js)
 
-
     def _dance(self, selector="body", interval=0.3, print_command=False):
         '''
         fun method to change looks of each matched
@@ -950,3 +967,6 @@ class BrowserHelper:
 ####################################################
 # More cool functions here
 ####################################################
+# # test
+# br = BrowserHelper()
+# br.get(["finder.ge"])
