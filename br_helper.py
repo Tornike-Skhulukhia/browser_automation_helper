@@ -369,8 +369,8 @@ class BrowserHelper:
         (default is False) and we will get empty list if no elements found,
         when in opposite case(default) we will get errrroor
 
-        Set interactable to False, to get not 
-        interactable elements also 
+        Set interactable to False, to get not
+        interactable elements also
         '''
 
         if not ignore_case:
@@ -514,7 +514,7 @@ class BrowserHelper:
         for now, works on chrome only.
 
         If q argument is passed, it will be used to filter
-        results on page. 
+        results on page.
         '''
         url = "chrome://settings/"
 
@@ -573,7 +573,6 @@ class BrowserHelper:
         on a page, otherwise, wait for speed optimization...
         ##################################################
         '''
-        soup = bs(self.br.page_source, "lxml")
         return self.bcss(selector)[0]
 
     def js(self, comm):
@@ -590,7 +589,6 @@ class BrowserHelper:
         # add specific element zoming ability later...
         '''
         self.js(f'document.body.style.zoom = "{to_percent}%" ')
-
 
     def google(self, s=None, domain="com"):
         '''
@@ -777,13 +775,13 @@ class BrowserHelper:
     def _get_js_result_nodes_generation_code(self, css_or_xpath_sel, print_command=False):
         '''
         returns code that can be evaluated in js to get js array
-        named nodes, containing elements using 
+        named nodes, containing elements using
         matching given css or xpath selector.
 
         So, after executing result of that function in javascript,
         we will have variable node, containing all matches we want.
 
-        if print_command argument is True, 
+        if print_command argument is True,
         command will also be printed.
         '''
         # which selection method do we have here
@@ -809,13 +807,13 @@ class BrowserHelper:
 
         return answer
 
-    def _change_selection_look(self, css_or_xpath_sel, 
+    def _change_selection_look(self, css_or_xpath_sel,
                                style="normal", print_command=False):
         '''
         change how selection matches look on browser,
         selections are saved in javascript as array, called nodes.
 
-        later may add more style numbers to make 
+        later may add more style numbers to make
         different changes, or even more control, if necessary.
         '''
         #############################################################
@@ -951,17 +949,17 @@ class BrowserHelper:
     def _dance(self, selector="body", interval=0.3, print_command=False):
         '''
         fun method to change looks of each matched
-        element in browser, default selector 
+        element in browser, default selector
         argument is body, but *, p, a or any other could
         be used.
 
-        interval argument(default=0.3) controls intervals 
+        interval argument(default=0.3) controls intervals
         between changes on a page
         '''
-        while True: 
+        while True:
             time.sleep(interval)
-            self._change_selection_look(selector, 
-                                        style="crazy", 
+            self._change_selection_look(selector,
+                                        style="crazy",
                                         print_command=print_command)
 
 ####################################################
