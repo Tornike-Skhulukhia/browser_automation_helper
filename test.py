@@ -7,7 +7,9 @@
 
         loads finder.ge-website, searches for specific
         word, parses returned page data and saves
-        results in json lines file.
+        results in json lines or csv file.
+
+    # make sure that in br_helper you have already saved driver location #
 '''
 
 from multi_br import MultiBr
@@ -66,42 +68,46 @@ def callback(br):
     #######################################
     # jl case (generate dictionary)
     #######################################
-    # data = [{k: j.strip() for j, k in
-    #         zip(i.text.split("\n"), ["დასახელება", "კომპანია", "ბოლო ვადა"])}
-    #         for i in br.css("div.content")]
+    data = [{k: j.strip() for j, k in
+            zip(i.text.split("\n"), ["დასახელება", "კომპანია", "ბოლო ვადა"])}
+            for i in br.css("div.content")]
 
-    # # we can save data here, by hand,
-    # # but this time we are going
-    # # to set save_results argument to True, so
-    # # data returned from this function
-    # # will be saved in
-    # # jl file named data_CURRENT_TIME.jl
+    # we can save data here, by hand,
+    # but this time we are going
+    # to set save_results argument to True, so
+    # data returned from this function
+    # will be saved in
+    # jl file named data_CURRENT_TIME.jl
 
-    # return {
-    #     "search_word": search_word,
-    #     "vacancies_data": data}
+    return {
+        "search_word": search_word,
+        "vacancies_data": data}
     #######################################
 
     #######################################
     # csv case (generate list)
     #######################################
-    data = [[search_word] + i.text.split("\n") for i in br.css("div.content")]
-    headers = ["სიტყვა", "დასახელება", "კომპანია", "ბოლო ვადა"]
+    # data = [[search_word] + i.text.split("\n") for i in br.css("div.content")]
+    # headers = ["სიტყვა", "დასახელება", "კომპანია", "ბოლო ვადა"]
 
-    # print("headers:", headers)
-    # print("data:", data)
-    return (headers, data)
+    # # print("headers:", headers)
+    # # print("data:", data)
+    # return (headers, data)
     #######################################
 
 
 # initialize
-mbr = MultiBr(save_format='csv')
+mbr = MultiBr(save_format='jl')  # save jl or csv
 
 # start processes
 mbr.get_with_multi(
         multi_type="thread",  # we can also use thread here
         multi_num=5,           # how many of them
         options={},            # options to use in browser in br_helper class
+                               # useful if we want to pass different proxies,
+                               # in which case options will be list of
+                               # options dicts
+
         urls=urls,             # all urls we want to load
         callback=callback,     # our function above
         save_results=True,     # do we want to save callback answers in jl?
