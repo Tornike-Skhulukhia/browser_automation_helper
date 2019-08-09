@@ -1,4 +1,4 @@
- 
+
 #################################################
 ########   Define your driver path here   #######
 #################################################
@@ -9,10 +9,13 @@ DRIVER_PATH = ""
 
 import time
 from bs4 import BeautifulSoup as bs
+from selenium import webdriver
 
 
 class BrowserHelper:
-    ''' class to help automate browser '''
+    '''
+    class to help automate browser
+    '''
     def __init__(self, browser="chrome", driver_path=None,
                  options=False, log_file="log.txt"):
 
@@ -255,7 +258,6 @@ class BrowserHelper:
         initialize(open and assign to object) browser if necessary
         '''
         if not self.br:
-            from selenium import webdriver
             # for later use
             from selenium.webdriver.common.keys import Keys
 
@@ -293,7 +295,7 @@ class BrowserHelper:
 
         if interactable:
             matches = self._get_interactables(matches)
-    
+
         # makes identifying match numbers easier
         print(str(len(matches)).center(20))
 
@@ -768,48 +770,47 @@ class BrowserHelper:
         '''
         self.br.refresh()
 
-    def make_editable(self):
+    def _editable(self):
         '''
         make page editable, using javascript command,
         just for fun :-)
         '''
-        self.js("document.designMode='on';")
+        self.js('if (document.designMode == "on")'
+                '{document.designMode = "off"}'
+                ' else {document.designMode = "on"}')
 
-    def _b_a(self):
+    def _ba(self):
         '''
         Make page black and white by injecting css into body tag.
-        To return back to colourful, just refresh the page.
         '''
         script = '''
-        (function () {
-              var body = document.body;
-              body.style['filter'] =
-              'progid:DXImageTransform.Microsoft.BasicImage(grayscale=1)';
-              if (!body.style['filter']) {
-                body.style['-webkit-filter'] = 'grayscale(1)';
-                body.style['filter'] = 'grayscale(1)';
-              }
-        }());'''
+            var text = "filter: grayscale(1)";
+            var css_text = document.body.style.cssText;
+
+            if (css_text.includes(text)){
+                document.body.style.cssText = css_text.replace(text, "")
+            }else{
+                document.body.style.cssText = text + css_text
+            }
+        '''
         self.js(script)
 
     def _invert(self):
         '''
         invert colors on a page by injecting css into body tag.
-        To return back to normal, just refresh the page.
 
-        # may not work for IE
         # not very good for black background pages
         '''
         script = '''
-        (function () {
-              var body = document.body;
-              body.style['filter'] =
-              'progid:DXImageTransform.Microsoft.BasicImage(invert=1)';
-              if (!body.style['filter']) {
-                body.style['-webkit-filter'] = 'invert(100%)';
-                body.style['filter'] = 'invert(100%)';
-              }
-        }());'''
+            var text = "filter: invert(100%);";
+            var css_text = document.body.style.cssText;
+
+            if (css_text.includes(text)){
+                document.body.style.cssText = css_text.replace(text, "")
+            }else{
+                document.body.style.cssText = text + css_text
+            }
+        '''
         self.js(script)
 
     def _game(self):
@@ -817,6 +818,59 @@ class BrowserHelper:
         start chrome dinosaur game
         '''
         self.get("chrome://dino", add_protocol=False)
+
+    def screenshot(self, element_or_selector="", image_name="screenshot.png"):
+        '''
+        Save screenshot of full page or part of it.
+        # Needs some fixes to work in all cases #
+
+        arguments:
+            1. element_or_selector - WebElement object or selector
+                                    (xpath or css) to find element and
+                                    then save its screenshot.
+
+                                    If set to empty string
+                                    (which is default argument),
+                                    full body's screenshot will be saved.
+
+            2. image_name - image name/path to save screenshot
+                            (default='screenshot.png').
+        '''
+        from PIL import Image
+        from io import BytesIO
+        # import selenium
+
+        # webelement case
+        if isinstance(
+                    element_or_selector,
+                    webdriver.remote.webelement.WebElement):
+            element = element_or_selector
+
+        # empty string case - save full page
+        elif element_or_selector == "":
+            self.br.save_screenshot(image_name)
+            return
+
+        # specific element case
+        else:
+            # selector case
+            element = self._css1_xpath1(element_or_selector)
+
+        location = element.location
+        size = element.size
+
+        left = location['x']
+        top = location['y']
+        right = location['x'] + size['width']
+        bottom = location['y'] + size['height']
+
+        # save screenshot of entire page
+        png = self.br.get_screenshot_as_png()
+        # open image in memory
+        img = Image.open(BytesIO(png))
+
+        img = img.crop((left, top, right, bottom))
+        img.save(image_name)
 
     def _get_js_result_nodes_generation_code(
                                         self,
@@ -949,6 +1003,11 @@ class BrowserHelper:
             # zoom randomly
             if r.randint(1, 5) == 5:
                 self._zoom(r.randint(30, 300))
+
+            # invert colors randomly
+            if r.randint(1, 10) == 1:
+                self._invert()
+
         else:
             # normal cases
             color = r.choice(["#FFF", "#000", "#777", "#00F", "#0F0", "F00"])
