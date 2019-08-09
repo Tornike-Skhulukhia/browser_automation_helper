@@ -1,4 +1,4 @@
-
+ 
 #################################################
 ########   Define your driver path here   #######
 #################################################
@@ -471,11 +471,15 @@ class BrowserHelper:
             f.write(line)
 
     def press(self, key, elem=False):
-        # ! test !
         '''
-            assume that before that, last selection call(css1 or xpath1) was on
-            element that we want to click on -->
-                to make things easier to use for now
+            Send keys to current window elements.
+            # unfortunately not all of them work for now.
+
+            arguments:
+                1. key - key to press, upper or lowercase
+                        (space, enter, up, down...)
+                2. elem - element to send press(default=False).
+                        if element is not supplied, body tag will be used.
         '''
         # if no argument supplied, last found element will be used
         if not elem:
@@ -771,8 +775,53 @@ class BrowserHelper:
         '''
         self.js("document.designMode='on';")
 
+    def _b_a(self):
+        '''
+        Make page black and white by injecting css into body tag.
+        To return back to colourful, just refresh the page.
+        '''
+        script = '''
+        (function () {
+              var body = document.body;
+              body.style['filter'] =
+              'progid:DXImageTransform.Microsoft.BasicImage(grayscale=1)';
+              if (!body.style['filter']) {
+                body.style['-webkit-filter'] = 'grayscale(1)';
+                body.style['filter'] = 'grayscale(1)';
+              }
+        }());'''
+        self.js(script)
 
-    def _get_js_result_nodes_generation_code(self, css_or_xpath_sel, print_command=False):
+    def _invert(self):
+        '''
+        invert colors on a page by injecting css into body tag.
+        To return back to normal, just refresh the page.
+
+        # may not work for IE
+        # not very good for black background pages
+        '''
+        script = '''
+        (function () {
+              var body = document.body;
+              body.style['filter'] =
+              'progid:DXImageTransform.Microsoft.BasicImage(invert=1)';
+              if (!body.style['filter']) {
+                body.style['-webkit-filter'] = 'invert(100%)';
+                body.style['filter'] = 'invert(100%)';
+              }
+        }());'''
+        self.js(script)
+
+    def _game(self):
+        '''
+        start chrome dinosaur game
+        '''
+        self.get("chrome://dino", add_protocol=False)
+
+    def _get_js_result_nodes_generation_code(
+                                        self,
+                                        css_or_xpath_sel,
+                                        print_command=False):
         '''
         returns code that can be evaluated in js to get js array
         named nodes, containing elements using
