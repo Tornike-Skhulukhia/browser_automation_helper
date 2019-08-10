@@ -34,7 +34,7 @@ def callback(br):
     '''
     when called, br_helper object (browser) will be passed here.
     Also in each case we will have access to requested page-s url
-    with br-s meta dictinary(using url key).
+    with br-s meta dictionary(using url key).
 
     If we supplied other meta data, in get_with_multi method
     we will have access to this data here.
