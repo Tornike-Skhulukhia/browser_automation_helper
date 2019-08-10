@@ -101,7 +101,7 @@ mbr = MultiBr(save_format='jl')  # save jl or csv
 
 # start processes
 mbr.get_with_multi(
-        multi_type="thread",  # we can also use thread here
+        multi_type="thread",  # we can use process or thread here
         multi_num=5,           # how many of them
         options={},            # options to use in browser in br_helper class
                                # useful if we want to pass different proxies,
@@ -110,7 +110,7 @@ mbr.get_with_multi(
 
         urls=urls,             # all urls we want to load
         callback=callback,     # our function above
-        save_results=True,     # do we want to save callback answers in jl?
+        save_results=True,     # do we want to save callback answers in jl or csv file?
 
                                # if we are adding meta data, it should be
                                # list of dictionaries with same length
