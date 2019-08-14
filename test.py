@@ -21,7 +21,7 @@ import time
 
 
 # define what words we want search for
-search_words = ["Javascript", "NodeJS", "C#", "PHP", "Python", "Golang"] * 10
+search_words = ["Javascript", "C#", "PHP", "Python", "Golang", ""] * 3
 
 # say that we want to get same urls multiple times
 main_url = "finder.ge"
@@ -110,7 +110,8 @@ mbr.get_with_multi(
 
         urls=urls,             # all urls we want to load
         callback=callback,     # our function above
-        save_results=True,     # do we want to save callback answers in jl or csv file?
+        save_results=True,     # do we want to save callback answers in jl
+                               # or csv file?
 
                                # if we are adding meta data, it should be
                                # list of dictionaries with same length

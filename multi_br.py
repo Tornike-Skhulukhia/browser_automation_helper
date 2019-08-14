@@ -97,13 +97,14 @@ class MultiBr:
                 # print("written headers", headers)
                 writer.writerow(headers)
             # new row
-            if not isinstance(text_items[0], (list, tuple, set)):
-                # print("changed to list")
-                text_items = [text_items]
+            if text_items:
+                if not isinstance(text_items[0], (list, tuple, set)):
+                    # print("changed to list")
+                    text_items = [text_items]
 
-            for row_items in text_items:
-                # print("written row", row_items)
-                writer.writerow(row_items)
+                for row_items in text_items:
+                    # print("written row", row_items)
+                    writer.writerow(row_items)
 
     def _add_line_in_jl_file(self, text, indent=True):
         '''
