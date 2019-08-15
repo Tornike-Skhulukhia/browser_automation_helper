@@ -16,9 +16,47 @@ class BrowserHelper:
     '''
     class to help automate browser
     '''
-    def __init__(self, browser="chrome", driver_path=None,
-                 options=False, log_file="log.txt"):
+    def __init__(self,                 browser="chrome",
+                 driver_path=None,     options=False,
+                 log_file="log.txt"):
+        '''
+        initialize object with given arguments:
+            1. browser - browser to work with("chrome" or "firefox").
+                        currently development uses chrome,
+                        but firefox has support for basic functionality.
 
+            2. driver_path - driver file location(appropriate for browser).
+                            Takes precedence over global DRIVER_PATH variable.
+
+                            If when creating object this argument was not
+                            supplied, we will try to use already globally
+                            defined DRIVER_PATH variable's value,
+                            which at first is "", but if we wait few seconds
+                            to find possible candidates for driver path and
+                            after that type appropriate index to save as
+                            DRIVER_PATH value, this change will automatically
+                            happen in this file, so next time we can
+                            create objects without using driver_path argument.
+
+                            Of course, it is also possible to make this change
+                            by hand first time in this file.
+
+            3. options - dictionary of options to use for specific browser
+                        instance. currently supported:
+                            . visibility             (boolean)
+                            . download_location      (string)
+                            . window_size            (tuple)
+                            . hide_images            (boolean)
+                            . disable_javascript     (boolean)
+                            . proxy                  (string)
+                            . user_data_dir          (string)
+                            . disable_infobars       (boolean)
+
+                        see _add_necessary_options for more details.
+
+            4. log_file - log file to use in self.log method.
+                         default=("log.txt")
+        '''
         if driver_path is None:
             # maybe variable is defined
             global DRIVER_PATH
@@ -26,12 +64,12 @@ class BrowserHelper:
             if DRIVER_PATH:
                 self.driver_path = DRIVER_PATH  # no checks here
             else:
-                self.driver_path = self.get_driver(browser)
+                self.driver_path = self._get_driver(browser)
                 if not self.driver_path:
                     exit()
                 else:
                     # dynamically edit lines in this file
-                    self.replace_driver_path_line_if_necessary(
+                    self._replace_driver_path_line_if_necessary(
                                                         self.driver_path)
         else:
             self.driver_path = driver_path
@@ -40,26 +78,25 @@ class BrowserHelper:
         self.log_file = log_file
         # for later use
         self.keys = ""
-        self.elem = ""
 
         self.options = options  # supply dictionary
         self.which_browser = browser
 
     def __repr__(self):
-        ''' Testing '''
+        ''' Representation '''
         text = (f"<BrowserHelper (browser={repr(self.which_browser)}, "
                 f"driver_path='{self.driver_path}')>")
         return text
 
     def __str__(self):
-        ''' Testing '''
+        ''' What to print '''
         text = f'<BrowserHelper object for {self.which_browser}>'
         return text
 
-    def replace_driver_path_line_if_necessary(self, driver_path):
+    def _replace_driver_path_line_if_necessary(self, driver_path):
         '''
-        replace current files driver_path line,
-        if user gives this information,
+        replace current files DRIVER_PATH line,
+        if user gives this information when needed,
         to not repeat same process more than once
 
         adds appropriate string in line
@@ -94,7 +131,7 @@ class BrowserHelper:
         print(f"Driver location {self.driver_path} saved".center(70))
         # be careful here
 
-    def get_driver(self, browser):
+    def _get_driver(self, browser):
         '''
         Search file system and get driver files locations.
 
@@ -139,10 +176,11 @@ class BrowserHelper:
 
         # check answer
         if not possible_drivers:
-            print(f"Sorry, drivers for {browser} not found, please download one."
-                  "\nFor chrome   -   http://chromedriver.chromium.org/downloads"
-                  "\nFor Firefox  -   https://github.com/mozilla/geckodriver/releases" 
-                  "\n\nexiting")
+            print(
+                f"Sorry, drivers for {browser} not found, please download one."
+                "\nChrome  - http://chromedriver.chromium.org/downloads"
+                "\nFirefox - https://github.com/mozilla/geckodriver/releases"
+                "\n\nexiting")
             return
         else:
             print("="*70, "\n")
@@ -174,7 +212,7 @@ class BrowserHelper:
             print(f"Thanks,")
             return answer
 
-    def add_necessary_options(self, args):
+    def _add_necessary_options(self, args):
         '''
         change/add options to browser instance,
         such as custom download location,
@@ -182,15 +220,15 @@ class BrowserHelper:
 
         args --> dictionary, ex: {'proxy' : '1.2.3.4:5', 'visibility': False }
         full list:
-            . visibility - True/False - boolean_value
-            . download_location - /path/to/folder - string
-            . window_size - (width, height) - tuple
-            . hide_images - True/False - boolean
-            . disable_javascript - True/False - boolean
-            . proxy - ip:port - string
-            . user_data_dir - path/to/chrome/profile - string
-            . disable_infobars - show or not infobars(default - False)
-                              (including chrome is being...) - boolean
+            . visibility            - True/False                - boolean
+            . download_location     - /path/to/folder           - string
+            . window_size           - (width, height)           - tuple
+            . hide_images           - True/False                - boolean
+            . disable_javascript    - True/False                - boolean
+            . proxy                 - ip:port                   - string
+            . user_data_dir         - path/to/chrome/profile    - string
+            . disable_infobars      - disable or not infobars   - boolean
+                                                                    (default=True)
         '''
         if self.which_browser == "chrome":
             from selenium.webdriver.chrome.options import Options
@@ -250,10 +288,7 @@ class BrowserHelper:
                     self.browser_options.add_argument(
                                 f'user_data_dir={value}')
 
-                else:
-                    pass
-
-    def initialize_browser_if_necessary(self):
+    def _initialize_browser_if_necessary(self):
         '''
         initialize(open and assign to object) browser if necessary
         '''
@@ -261,7 +296,7 @@ class BrowserHelper:
             # for later use
             from selenium.webdriver.common.keys import Keys
 
-            self.add_necessary_options(self.options)
+            self._add_necessary_options(self.options)
             # breakpoint()
 
             if self.which_browser == "chrome":
@@ -280,24 +315,35 @@ class BrowserHelper:
     def _get_interactables(self, webelements):
         '''
         get list of webelements(selected with xpath/css)
-        and return only those, which seems interactable
+        and return only those, which seems interactable.
+
+        # method needs refinement #
         '''
         return [i for i in webelements if i.is_displayed() and i.is_enabled()]
 
-    def css(self, selector, interactable=False,
+    def css(self,            selector,                 interactable=False,
             highlight=False, print_command=False):
         '''
-        find all matches by css selector.
-        if interactable is set to True, only
-        possibly interactable elements will be returned
+        Find all matching webelements by css selector.
+
+        arguments:
+            1. selector - selector to use
+
+            2. interactable - if set to True(default=False), only possibly
+                            interactable elements will be returned
+
+            3. highlight - set to True to highlight matched element
+                        using _change_selection_look method
+                        (default=False).
+
+            4. print_command - if set to True, javascript code
+                            that was used in _change_selection_look
+                            method will be printed(default=False).
         '''
         matches = self.br.find_elements_by_css_selector(selector)
 
         if interactable:
             matches = self._get_interactables(matches)
-
-        # makes identifying match numbers easier
-        print(str(len(matches)).center(20))
 
         # highlight matches
         if highlight:
@@ -305,26 +351,54 @@ class BrowserHelper:
 
         return matches
 
-    def css1(self, selector, interactable=False):
-        ''' find first element by css selector'''
-        elem = self.css(selector, interactable)[0]
-        self.elem = elem  # to use later in clicks
+    def css1(self,            selector,                 interactable=False,
+             highlight=False, print_command=False):
+        '''
+        Find first matching webelements by css selector.
+
+        If element is not present, exception will be raised.
+
+        arguments(same as for css method):
+            1. selector - selector to use
+
+            2. interactable - if set to True(default=False), only possibly
+                            interactable elements will be returned
+
+            3. highlight - set to True to highlight matched element
+                        using _change_selection_look method
+                        (default=False).
+
+            4. print_command - if set to True, javascript code
+                            that was used in _change_selection_look
+                            method will be printed(default=False).
+        '''
+        elem = self.css(
+                selector, interactable, highlight, print_command)[0]
         return elem
 
-    def xpath(self, selector, interactable=False, 
-              highlight=False, print_command=False):
+    def xpath(self,              selector,               interactable=False,
+              highlight=False,   print_command=False):
         '''
-        find all matches by xpath selector.
-        if interactable is set to True, only
-        possibly interactable elements will be returned
+        Find all matching webelements by xpath selector.
+
+        arguments:
+            1. selector - selector to use
+
+            2. interactable - if set to True(default=False), only possibly
+                            interactable elements will be returned
+
+            3. highlight - set to True to highlight matched element
+                        using _change_selection_look method
+                        (default=False).
+
+            4. print_command - if set to True, javascript code
+                            that was used in _change_selection_look
+                            method will be printed.
         '''
         matches = self.br.find_elements_by_xpath(selector)
 
         if interactable:
             matches = self._get_interactables(matches)
-
-        # makes identifying match numbers easier
-        print(str(len(matches)).center(20))
 
         # highlight selected
         if highlight:
@@ -332,10 +406,26 @@ class BrowserHelper:
 
         return matches
 
-    def xpath1(self, selector, interactable=False):
-        ''' find first element by xpath'''
+    def xpath1(self,              selector,               interactable=False,
+               highlight=False,   print_command=False):
+        '''
+        Find first matching webelement by xpath selector.
+
+        arguments:
+            1. selector - selector to use
+
+            2. interactable - if set to True(default=False), only possibly
+                            interactable elements will be returned
+
+            3. highlight - set to True to highlight matched element
+                        using _change_selection_look method
+                        (default=False).
+
+            4. print_command - if set to True, javascript code
+                            that was used in _change_selection_look
+                            method will be printed.
+        '''
         elem = self.xpath(selector, interactable)[0]
-        self.elem = elem
         return elem
 
     def find(self, text, ignore_case=False,
@@ -343,6 +433,9 @@ class BrowserHelper:
              interactable=True, print_selector=False,
              highlight=False, print_command=False):
         '''
+        # why contains sometimes do not find elements
+        with exact matches ?  - possible bug #
+
         get element on a page containing given text
         (not exact text match, just
         any element containing that text,
@@ -395,8 +488,10 @@ class BrowserHelper:
         if print_selector:
             print(sel)
 
+        # breakpoint()
         # highlight selection
-        self._change_selection_look(sel, print_command)
+        if highlight:
+            self._change_selection_look(sel, print_command)
 
         # do not check for interactability
         if not interactable:
@@ -441,10 +536,13 @@ class BrowserHelper:
 
                           we may use it to parse and save data somewhere.
         '''
-
+        #######################################
+        # to use new soup in bcss method
+        self._soup = False
+        #######################################
         # initialize browser
         # breakpoint()
-        self.initialize_browser_if_necessary()
+        self._initialize_browser_if_necessary()
 
         # convert to list if it is string
         if isinstance(url_or_urls, str):
@@ -466,7 +564,13 @@ class BrowserHelper:
 
     def log_info(self, text):
         '''
-            Log information
+            Log given text in file that is assigned as log_file property.
+
+            Current time and newline character will be added automatically
+            after and before the text.
+
+            arguments:
+                1. text - text to log/save in file
         '''
         with open(self.log_file, "a") as f:
             line = f'{time.ctime()} | {text}\n'
@@ -479,32 +583,31 @@ class BrowserHelper:
 
             arguments:
                 1. key - key to press, upper or lowercase
-                        (space, enter, up, down...)
+                        (space, enter, up, down...).
+                        here we use selenium.webdriver.common.keys keys.
+
                 2. elem - element to send press(default=False).
                         if element is not supplied, body tag will be used.
         '''
-        # if no argument supplied, last found element will be used
         if not elem:
-            # elem = self.elem
             elem = self.css1("body")
 
         key = getattr(self.keys, key.upper())
         elem.send_keys(key)
 
-    # for now, works on only chrome
     def show_downloads(self):
         '''
-        show downloads tab in browser.
-
-        for now, works on chrome only
+        show downloads tab in browser,
+        for now, works on chrome only.
         '''
         self.get("chrome://downloads/", add_protocol=False)
 
     def show_history(self, q=None):
         '''
-        show history tab in browser.
+        show history tab in browser,
+        if q argument(string) is present, it will be searched in history.
 
-        for now, works on chrome only
+        for now, works on chrome only.
         '''
         url = "chrome://history/"
 
@@ -544,7 +647,6 @@ class BrowserHelper:
         make duck duck go search to see
         current ip
         '''
-        # url = "https://whatismyipaddress.com/"
         url = "https://duckduckgo.com/?q=my+ip&t=h_&ia=answer"
         self.get(url)
 
@@ -558,26 +660,25 @@ class BrowserHelper:
 
     def bcss(self, selector):
         '''
-        get elements using bs4 & whole page source
-        *it seems faster in most cases
+        bs4 css selector method.
 
-        ##################################################
-        good enough approach if only one selection is used
-        on a page, otherwise, wait for speed optimization...
-        ##################################################
+        gets elements using bs4 & whole page source
+        *it seems faster in most cases than direct webelements.
         '''
-        soup = bs(self.br.page_source, "lxml")
-        return soup.select(selector)
+
+        # if it is first time of search on page
+        # assign soup property
+        if not self._soup:
+            self._soup = bs(self.br.page_source, "lxml")
+
+        return self._soup.select(selector)
 
     def bcss1(self, selector):
         '''
-        get first match using bs4 & whole page source
-        *it seems faster in most cases
+        bs4 css1 selector method.
 
-        ##################################################
-        good enough approach if only one selection is used
-        on a page, otherwise, wait for speed optimization...
-        ##################################################
+        get first match using bs4 & whole page source
+        *it seems faster in most cases than direct webelements.
         '''
         return self.bcss(selector)[0]
 
@@ -589,10 +690,11 @@ class BrowserHelper:
 
     def _zoom(self, to_percent):
         '''
-        zoom to page using given number(%).
-        ex: _zoom(100) is default --> normal mode
+        zoom to page by given number(%).
+        ex: _zoom(100) is default --> normal mode.
 
-        # add specific element zoming ability later...
+        arguments:
+            1. to_percent - number for zoom value(without % sign)
         '''
         self.js(f'document.body.style.zoom = "{to_percent}%" ')
 
@@ -603,11 +705,13 @@ class BrowserHelper:
             (default=com)
 
             if no search string supplied,
-            just google page will be opened
+            just google page will be opened.
+
+            arguments:
+                1. s - search string(default="")
+                2. domain - google domain use in search(default="com")
         '''
         from urllib.parse import quote
-
-        # url = "google.com"
 
         if s is None:
             url = f'google.{domain}'
@@ -619,9 +723,14 @@ class BrowserHelper:
 
     def duck(self, s=None):
         '''
-            simillar as google method,
-            but using duckduckgo and without
-            different domains support
+            Searhc given text with duckduckgo
+            search engine.
+
+            if no search string supplied,
+            just duckduckgo page will be opened.
+
+            arguments:
+                1. s - search string(default="")
         '''
         from urllib.parse import quote
 
@@ -637,23 +746,41 @@ class BrowserHelper:
 
     def _css_xpath(self, selector, interactable=False):
         '''
-        gets css or xpath selector method based
-        on selector(differentiate xpath with /),
-        call it and return result
+            gets css or xpath selector method based on selector
+        (differentiates xpath with /), calls it and returns list of
+        results it founds.
+
+        arguments:
+            1. selector - selector to use
+            2. interactable - interactable argument for css/xpath method
         '''
         method = self.xpath if selector.startswith("/") else self.css
         return method(selector, interactable)
 
     def _css1_xpath1(self, selector, interactable=False):
+        '''
+            gets css or xpath selector method based on selector
+        (differentiates xpath with /), calls it and returns first
+        result if founds, if present, otherwise raises exception.
+
+        arguments:
+            1. selector - selector to use
+            2. interactable - interactable argument for css/xpath method
+        '''
         return self._css_xpath(selector, interactable)[0]
 
     def _print_error(self):
+        '''
+        prints error using traceback module's format_exc method
+        '''
         import traceback
         print(traceback.format_exc())
 
-    def login(self, url, login_info=("username", "password"),
-              selectors=None, seconds=1):
+    def login(self,             url,       login_info=("username", "password"),
+              selectors=None,   seconds=1):
         '''
+        # still in development #
+
         Function tries to log us on a website and returns True,
         if it thinks, we did it successfully.
 
@@ -668,9 +795,11 @@ class BrowserHelper:
 
             3. selectors - list/set/tuple of css/xpath selectors,
                             (if selector starts with /, we use xpath methods)
+
                             . username - username/email selector
                             . password - password selector
                             . submit   - submit button selector
+
                             . success_sel - 2 element tuple -
                                     (args_for_method, check_method),
                                     . args_for_method - method arguments to
@@ -679,25 +808,24 @@ class BrowserHelper:
                                         ex:
                                             'arg_1, arg_2="abc"'
 
-                                    . method - specific method of this class
-                                    to use for search after page loads
+                                    . check_method - specific method name
+                                    (string) of this class to use for search
+                                    after page loads.
 
-                                    selector of element which should be present
-                                    on page to say that login was successfull.
+                                    In short, if we run check_method with
+                                    args_for_method arguments,
+                                    on page where login is not successfull,
+                                    we should not get any matches.
 
-                                    # thinking to make last selector easier
-                                    to get with find method of this class.
+                        # We should supply all of these, or None of these
+                        If not supplied, our simple predictionn logic
+                        will be used to find possible elements and if
+                        something goes wrong, function will return False
 
-                            # We should supply all of these, or None of these
-                            If not supplied, our simple predictionn logic
-                            will be used to find possible elements and if
-                            something goes wrong, function will return False
             4. seconds - number of seconds to wait page to load completely
-                         (default = 1). We will make this  process dynamic & more reliable 
-                         in the future.
+                         (default = 1). We want to make this process dynamic
+                         & more reliable in the future.
         '''
-        # add optional argument in get to wait before page loads(later)
-
         # logged in status
         status = False
         username, password = login_info
@@ -719,7 +847,7 @@ class BrowserHelper:
                         _sel[2]: "[type='submit']"}
             else:
                 # small check
-                assert len(selectors) == 3
+                assert len(selectors) == 4
 
                 _selectors = {i: j for i, j in zip(_sel, selectors)}
 
@@ -729,7 +857,6 @@ class BrowserHelper:
 
             for name_, sel_ in _selectors.items():
                 # select between xpath or css
-                # breakpoint()
                 elems[name_] = self._css1_xpath1(sel_, True)
 
             # type data and press login
@@ -761,19 +888,18 @@ class BrowserHelper:
         except:
             self._print_error()
             breakpoint()
-        # print(status)
+
         return status
 
     def r(self):
         '''
-        just refresh easier
+        refresh page
         '''
         self.br.refresh()
 
     def _editable(self):
         '''
-        make page editable, using javascript command,
-        just for fun :-)
+        make page editable/normal, using javascript
         '''
         self.js('if (document.designMode == "on")'
                 '{document.designMode = "off"}'
@@ -781,7 +907,7 @@ class BrowserHelper:
 
     def _ba(self):
         '''
-        Make page black and white by injecting css into body tag.
+        Make page black and white/normal by injecting css into body tag.
         '''
         script = '''
             var text = "filter: grayscale(1)";
@@ -822,7 +948,7 @@ class BrowserHelper:
     def screenshot(self, element_or_selector="", image_name="screenshot.png"):
         '''
         Save screenshot of full page or part of it.
-        # Needs some fixes to work in all cases #
+        # Needs some fixes to work in all cases(ex: some images) #
 
         arguments:
             1. element_or_selector - WebElement object or selector
@@ -841,9 +967,8 @@ class BrowserHelper:
         # import selenium
 
         # webelement case
-        if isinstance(
-                    element_or_selector,
-                    webdriver.remote.webelement.WebElement):
+        if isinstance(element_or_selector,
+                      webdriver.remote.webelement.WebElement):
             element = element_or_selector
 
         # empty string case - save full page
@@ -884,8 +1009,10 @@ class BrowserHelper:
         So, after executing result of that function in javascript,
         we will have variable node, containing all matches we want.
 
-        if print_command argument is True,
-        command will also be printed.
+        arguments:
+            1. css_or_xpath_sel - selector(css or xpath) to use
+            2. print_command - if set to True, command will also be printed
+                            (default=False)
         '''
         # which selection method do we have here
         sel_type = "css"
