@@ -536,10 +536,6 @@ class BrowserHelper:
 
                           we may use it to parse and save data somewhere.
         '''
-        #######################################
-        # to use new soup in bcss method
-        self._soup = False
-        #######################################
         # initialize browser
         # breakpoint()
         self._initialize_browser_if_necessary()
@@ -665,12 +661,7 @@ class BrowserHelper:
         gets elements using bs4 & whole page source
         *it seems faster in most cases than direct webelements.
         '''
-
-        # if it is first time of search on page
-        # assign soup property
-        if not self._soup:
-            self._soup = bs(self.br.page_source, "lxml")
-
+        self._soup = bs(self.br.page_source, "lxml")
         return self._soup.select(selector)
 
     def bcss1(self, selector):
