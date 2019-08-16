@@ -82,6 +82,11 @@ class BrowserHelper:
         self.options = options  # supply dictionary
         self.which_browser = browser
 
+        # # experimental
+        # import selenium
+        # selenium.webdriver.remote.webelement.WebElement.click_ = self.click
+
+
     def __repr__(self):
         ''' Representation '''
         text = (f"<BrowserHelper (browser={repr(self.which_browser)}, "
@@ -428,51 +433,51 @@ class BrowserHelper:
         elem = self.xpath(selector, interactable)[0]
         return elem
 
-    def find(self, text, ignore_case=False,
-             tag="*", all_=False, exact=False,
-             interactable=True, print_selector=False,
-             highlight=False, print_command=False):
+    def find(self,                      text,
+             ignore_case=False,         tag="*",
+             all_=False,                exact=False,
+             interactable=True,         print_selector=False,
+             highlight=False,           print_command=False):
         '''
-        # why contains sometimes do not find elements
-        with exact matches ?  - possible bug #
+        Convenient way to find elements on page,
+        using exact, or partial text match.
 
-        get element on a page containing given text
-        (not exact text match, just
-        any element containing that text,
-        if we want exact match, set exact argument to True,
-        but be careful, as sometimes whitespace is not visible)
+        arguments:
+            1. text - text to find(text that is in element we are searching)
 
-        it is possible to make case insensitive search,
-        if ignore_case is set to True
+            2. ignore_case - set to True to ignore upper
+                            and lower cases(default=False)
+            3. tag - set to valid html tag to narrow down results
+                    (ex: p, div, span) (default="*" - (everything))
 
-        We can also supply parent tag string, to
-        narrow down results, for example, find
-        only <a> tags with text 'Hello',
+            4. all_ - set to True to get list of all matches
+                    (default=False - returns first match,
+                    or raises exception if not found)
 
-        by default tag is *, so we search for all matches.
+            5. exact - set to True to find elements containing
+                     given text only(default=False)
 
-        * cool tip:
-            We can inject xpath selector parts(after*) for more specific
-        elements, for example, we can set tag to:
-            *[@title='Xpath Seems Also Cool']
-        and result will be the element with given title attribute.
+            6. interactable - set to False to get really all matches
+                            (default=True, so only elements that seem
+                            interactable will be returned, see
+                            _get_interactables method for more details)
 
-        all_ argument controls, if all matches should be returned.
+            7. print_selector - set to True to print generated selector
+                              (default=False)
 
-        in some cases, to avoid errors, for example if we are not sure
-        if element will be present, we can set all_ to True
-        (default is False) and we will get empty list if no elements found,
-        when in opposite case(default) we will get errrroor
+            8. highlight - set to True to highlight matches with
+                        _change_selection_look method (default=False)
 
-        Set interactable to False, to get not
-        interactable elements also
+            9. print_command - set to True to print javascript
+                            code that is executed when using
+                            _change_selection_look method (default=False)
         '''
 
         if not ignore_case:
             if exact:
                 sel = f'//{tag}[text() = "{text}"]'
             else:
-                sel = f'//{tag}[contains(text(), "{text}")]'
+                sel = f'//{tag}[text()[contains(.,"{text}")]]'
         else:
             uppers = "".join(sorted(set(text.upper())))
             lowers = "".join(sorted(set(text.lower())))
@@ -481,8 +486,8 @@ class BrowserHelper:
                 sel = (f"""//{tag}[translate(text(), '{uppers}', """
                        f"""'{lowers}') = '{text.lower()}']""")
             else:
-                sel = (f"""//{tag}[contains(translate(text(), '{uppers}', """
-                       f"""'{lowers}'), '{text.lower()}')]""")
+                sel = (f"""//{tag}[text()[contains(translate(., '{uppers}', """
+                       f"""'{lowers}'), '{text.lower()}')]]""")
 
         # print selector if we want
         if print_selector:
@@ -557,6 +562,67 @@ class BrowserHelper:
         else:
             for url in url_or_urls:
                 self.br.get(url)
+
+    def _b(self):
+        '''
+        go back in history
+        '''
+        self.br.back()
+
+    def _f(self):
+        '''
+        go forward in history
+        '''
+        self.br.forward()
+
+    def down(self):
+        '''
+        press down key
+        '''
+        self.press("down")
+
+    def up(self):
+        '''
+        press up key
+        '''
+        self.press("up")
+
+    def right(self):
+        '''
+        press right key
+        '''
+        self.press("right")
+
+    def left(self):
+        '''
+        press left key
+        '''
+        self.press("left")
+
+    def bottom(self):
+        '''
+        press end key to go to bottom of page
+        '''
+        self.press("end")
+
+    def top(self):
+        '''
+        press home key to go top of page
+        '''
+        self.press("home")
+
+
+    def home(self):
+        '''
+        go to home page of opened browser page
+        '''
+        import re
+
+        if self.br:
+            home_url = re.search(r"(.*\://.*?)/", self.br.current_url).group(1)
+            self.get(home_url, add_protocol=False)
+        else:
+            raise Exception("Please load browser first!")
 
     def log_info(self, text):
         '''
@@ -714,7 +780,7 @@ class BrowserHelper:
 
     def duck(self, s=None):
         '''
-            Searhc given text with duckduckgo
+            Search given text with duckduckgo
             search engine.
 
             if no search string supplied,
@@ -939,7 +1005,7 @@ class BrowserHelper:
     def screenshot(self, element_or_selector="", image_name="screenshot.png"):
         '''
         Save screenshot of full page or part of it.
-        # Needs some fixes to work in all cases(ex: some images) #
+        # Needs some fixes to work in all cases(ex: images) #
 
         arguments:
             1. element_or_selector - WebElement object or selector
@@ -1188,8 +1254,37 @@ class BrowserHelper:
                                         style="crazy",
                                         print_command=print_command)
 
+    def click(self, elem):
+        '''
+        click on element, iven if selenium says,
+        element is not clickable at point.
+
+        arguments:
+            1. elem - webelement object to click
+        '''
+        # breakpoint()
+        import selenium
+
+        try:
+            elem.click()
+        except selenium.common.exceptions.ElementClickInterceptedException:
+            self.br.execute_script("arguments[0].click()", elem)
+
 ####################################################
 # More cool functions here
+
+# possible ones:
+
+
+'''
+    . dynamic graph that shows download speeds
+        (for multiple browser instances case)
+
+    . more reliable events
+        (in some cases, clicks/presses do not work)
+    . captcha solver/s(but it seems more like independent project)
+
+'''
 ####################################################
 # # test
 # br = BrowserHelper()

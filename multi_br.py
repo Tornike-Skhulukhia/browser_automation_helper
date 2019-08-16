@@ -36,6 +36,8 @@ class MultiBr:
 
             2. indent_jl - indent or not json lines data(default=True)
         '''
+        if save_format.upper() not in ["CSV", "JL"]:
+            raise Exception("PLease use CSV or JL for save_format argument value!")
         self.save_format = save_format
         self.indent_jl = indent_jl
 

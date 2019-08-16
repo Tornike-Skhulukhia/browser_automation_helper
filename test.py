@@ -20,6 +20,17 @@ import time
 # not most efficient, but should work
 
 
+##########################################
+# define file format to save results in
+##########################################
+
+CASE = "csv"  # comma separated values
+
+# CASE = "jl"   # json lines
+
+##########################################
+
+
 # define what words we want search for
 search_words = ["Javascript", "C#", "PHP", "Python", "Golang", ""] * 3
 
@@ -64,40 +75,45 @@ def callback(br):
 
     # get data (not the most reliable way)
     #######################################
+    if CASE == "jl":
+        ######################################
+        # jl case (generate dictionary)
+        ######################################
+        data = [{k: j.strip() for j, k in
+                zip(i.text.split("\n"), 
+                    ["დასახელება", "კომპანია", "ბოლო ვადა"])}
+                for i in br.css("div.content")]
 
-    #######################################
-    # jl case (generate dictionary)
-    #######################################
-    data = [{k: j.strip() for j, k in
-            zip(i.text.split("\n"), ["დასახელება", "კომპანია", "ბოლო ვადა"])}
-            for i in br.css("div.content")]
+        # we can save data here, by hand,
+        # but this time we are going
+        # to set save_results argument to True, so
+        # data returned from this function
+        # will be saved in
+        # jl file named data_CURRENT_TIME.jl
 
-    # we can save data here, by hand,
-    # but this time we are going
-    # to set save_results argument to True, so
-    # data returned from this function
-    # will be saved in
-    # jl file named data_CURRENT_TIME.jl
+        return {
+            "search_word": search_word,
+            "vacancies_data": data}
+        ######################################
+    elif CASE == "csv":
+        #######################################
+        # csv case (generate list)
+        ######################################
+        data = [[search_word] +
+                i.text.split("\n") for i in br.css("div.content")]
+        headers = ["სიტყვა", "დასახელება", "კომპანია", "ბოლო ვადა"]
 
-    return {
-        "search_word": search_word,
-        "vacancies_data": data}
-    #######################################
+        # print("headers:", headers)
+        # print("data:", data)
+        return (headers, data)
+        #######################################
 
-    #######################################
-    # csv case (generate list)
-    #######################################
-    # data = [[search_word] + i.text.split("\n") for i in br.css("div.content")]
-    # headers = ["სიტყვა", "დასახელება", "კომპანია", "ბოლო ვადა"]
 
-    # # print("headers:", headers)
-    # # print("data:", data)
-    # return (headers, data)
-    #######################################
-
+# supported save methods for now
+assert CASE in ['jl', 'csv']
 
 # initialize
-mbr = MultiBr(save_format='jl')  # save jl or csv
+mbr = MultiBr(save_format=CASE)  # save jl or csv
 
 # start processes
 mbr.get_with_multi(
