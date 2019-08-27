@@ -1270,6 +1270,31 @@ class BrowserHelper:
         except selenium.common.exceptions.ElementClickInterceptedException:
             self.br.execute_script("arguments[0].click()", elem)
 
+    def wait_until_disappears(self,
+                              selector,
+                              check_interval=0.5,
+                              print_progress=True):
+        '''
+        wait until specific element disappears from page.
+        check if element is still interactive/visible with
+        _get_interactables method.
+
+        arguments:
+            1. selector - selector of element(css or xpath)
+
+            2. check_interval - time interval before next
+                            attempt of element search on page.
+                            (default=0.5)
+
+            3. print_progress - if set to False, function will not print
+                            that it waits (default=True)
+        '''
+        while self._css_xpath(selector, interactable=True):
+            if print_progress: print("waiting...")
+            time.sleep(check_interval)
+        return
+
+
 ####################################################
 # More cool functions here
 
