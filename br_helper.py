@@ -1319,7 +1319,7 @@ class BrowserHelper:
         '''
         get sitemap of current website
         '''
-        url = f'{self._get_current_domain()}/sitemap.txt'
+        url = f'{self._get_current_domain()}/sitemap.xml'
         self.get(url, False)
 
     def _robots(self):
