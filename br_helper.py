@@ -611,6 +611,15 @@ class BrowserHelper:
         '''
         self.press("home")
 
+    def _get_current_domain(self):
+        '''
+        returns current page's domain part
+        '''
+        import re
+        domain = re.search(
+                    r"(.*\://.*?)/", self.br.current_url).group(1)
+
+        return domain
 
     def home(self):
         '''
@@ -619,8 +628,8 @@ class BrowserHelper:
         import re
 
         if self.br:
-            home_url = re.search(r"(.*\://.*?)/", self.br.current_url).group(1)
-            self.get(home_url, add_protocol=False)
+            domain = self._get_current_domain()
+            self.get(domain, add_protocol=False)
         else:
             raise Exception("Please load browser first!")
 
@@ -1306,6 +1315,19 @@ class BrowserHelper:
             time.sleep(check_interval)
         return
 
+    def _sitemap(self):
+        '''
+        get sitemap of current website
+        '''
+        url = f'{self._get_current_domain()}/sitemap.txt'
+        self.get(url, False)
+
+    def _robots(self):
+        '''
+        get robots.txt file of current website
+        '''
+        url = f'{self._get_current_domain()}/robots.txt'
+        self.get(url, False)
 
 ####################################################
 # More cool functions here
