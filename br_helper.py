@@ -1254,21 +1254,33 @@ class BrowserHelper:
                                         style="crazy",
                                         print_command=print_command)
 
-    def click(self, elem):
+    def click(self, elem, try_parent=True):
         '''
         click on element, iven if selenium says,
         element is not clickable at point.
 
         arguments:
             1. elem - webelement object to click
+            2. try_parent - if set to True(Default), if click
+                        raises exception, we will try to click on
+                        its direct parent
+
+            # simplify try-excepts later #
         '''
         # breakpoint()
         import selenium
+        exc = selenium.common.exceptions.ElementClickInterceptedException
 
         try:
             elem.click()
-        except selenium.common.exceptions.ElementClickInterceptedException:
-            self.br.execute_script("arguments[0].click()", elem)
+        except exc:
+            if try_parent:
+                try:
+                    elem.find_element_by_xpath("parent::*").click()
+                except exc:
+                    self.br.execute_script("arguments[0].click()", elem)
+            else:
+                self.br.execute_script("arguments[0].click()", elem)
 
     def wait_until_disappears(self,
                               selector,
