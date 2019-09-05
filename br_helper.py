@@ -754,15 +754,46 @@ class BrowserHelper:
         '''
         return self.br.execute_script(comm)
 
-    def _zoom(self, to_percent):
+    def zoom(self, to_percent):
         '''
         zoom to page by given number(%).
-        ex: _zoom(100) is default --> normal mode.
+        ex: zoom(100) is default --> normal mode.
 
         arguments:
             1. to_percent - number for zoom value(without % sign)
         '''
         self.js(f'document.body.style.zoom = "{to_percent}%" ')
+
+    def rotate(self, element_or_selector="body", deg=30, interactable=True):
+        '''
+        rotates given element in browser window.
+
+        arguments:
+            1. deg - degrees to rotate element by(including negative numbers)
+                    (default=30)
+            2. element_or_selector - css selector or selenium element to rotate
+                                    (default="body", or full page)
+            3. interactable - interactable argument for
+                                css/xpath selectors(default=True)
+        '''
+        # webelement case
+        if isinstance(element_or_selector,
+                      webdriver.remote.webelement.WebElement):
+            element = element_or_selector
+        else:
+            element = self._css1_xpath1(element_or_selector,
+                                        interactable=interactable)
+
+        old_style_value = element.get_attribute("style").strip()
+        new_style_part = ('display: block; '
+                          f'-webkit-transform: rotate({deg}deg)')
+        full_style = new_style_part
+
+        if old_style_value:  # may still cause errors sometimes, but...
+            full_style = old_style_value + "; " + new_style_part
+
+        self.br.execute_script(
+            f"arguments[0].setAttribute('style','{full_style}')", element)
 
     def google(self, s=None, domain="com"):
         '''
@@ -1195,7 +1226,7 @@ class BrowserHelper:
 
             # zoom randomly
             if r.randint(1, 5) == 5:
-                self._zoom(r.randint(30, 300))
+                self.zoom(r.randint(30, 300))
 
             # invert colors randomly
             if r.randint(1, 10) == 1:
