@@ -158,7 +158,7 @@ class MultiBr:
                          function. this argument should be list of dicts with
                          same length as urls and with same sequence as urls.
                          it will be available as browser instance's
-                         _meta property and will always have at least
+                         meta property and will always have at least
                          url as key that shows requested url(not redirected)
 
         '''
