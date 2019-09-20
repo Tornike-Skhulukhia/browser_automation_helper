@@ -3,7 +3,7 @@
 ########   Define your driver path here   #######
 #################################################
 
-DRIVER_PATH = ""
+DRIVER_PATH = "/home/tornike/Desktop/bin/chromedriver"
 
 #################################################
 
@@ -89,8 +89,9 @@ class BrowserHelper:
 
     def __repr__(self):
         ''' Representation '''
-        text = (f"<BrowserHelper (browser={repr(self.which_browser)}, "
-                f"driver_path='{self.driver_path}')>")
+        text = (f"< BrowserHelper (browser={repr(self.which_browser)}, "
+                f"driver_path={repr(self.driver_path)}, "
+                f"options={repr(self.options)}) > ")
         return text
 
     def __str__(self):
@@ -292,6 +293,21 @@ class BrowserHelper:
                 elif key == "user_data_dir":
                     self.browser_options.add_argument(
                                 f'user_data_dir={value}')
+
+                # to avoid possible quiet bugs
+                else:
+                    exc_text = repr(key) + " is not a valid option yet\n"
+                    exc_text += ("""Avaliable options are:
+                        . visibility
+                        . download_location
+                        . window_size
+                        . hide_images
+                        . disable_javascript
+                        . proxy
+                        . user_data_dir
+                        . disable_infobars""")
+
+                    raise Exception(exc_text)
 
     def _initialize_browser_if_necessary(self):
         '''
@@ -556,12 +572,16 @@ class BrowserHelper:
                     url_or_urls[index] = "http://" + url
 
         if callback:
-            for url in url_or_urls:
+            for index, url in enumerate(url_or_urls):
                 self.br.get(url)
                 callback(self)
+                if len(url_or_urls) > 1:
+                    print(f'{index + 1:^4}/{len(url_or_urls):^4}| {url} | + ')
         else:
-            for url in url_or_urls:
+            for index, url in enumerate(url_or_urls):
                 self.br.get(url)
+                if len(url_or_urls) > 1:
+                    print(f'{index + 1:^4}/{len(url_or_urls):^4}| {url} | + ')
 
     def _b(self):
         '''
@@ -764,7 +784,8 @@ class BrowserHelper:
         '''
         self.js(f'document.body.style.zoom = "{to_percent}%" ')
 
-    def rotate(self, element_or_selector="body", deg=30, interactable=True):
+
+    def rotate(self, deg=30, element_or_selector="body",  interactable=True):
         '''
         rotates given element in browser window.
 
@@ -1360,6 +1381,55 @@ class BrowserHelper:
         url = f'{self._get_current_domain()}/robots.txt'
         self.get(url, False)
 
+    def _parse_sitemap_urls(self, allowed_extensions=['zip', 'gz']):
+        '''
+        Returns loc tag links on current page that end with allowed extension.
+        Should be used with opened sitemap page.
+
+        arguments:
+            1. allowed_extensions - to get link from loc tag,
+                                    It needs to be ended with one of
+                                    allowed extension (default=['zip', 'gz']).
+        '''
+        urls = []
+
+        # get file urls
+        for loc in self.bcss("loc"):
+            url = loc.text
+            if url.lower().split(".")[-1] in allowed_extensions:
+                urls.append(url)
+        return urls
+
+    def download_sitemap_files(self,
+                               sitemap_url,
+                               allowed_extensions=['zip', 'gz'],
+                               ):
+        '''
+        Loads sitemap page, and opens
+        each link individually to download that file.
+
+        To wait for all downloads, it is better to write
+        small script by yourself, that checks number of files
+        in necessary folder and does what you want.
+
+        arguments:
+            1. sitemap_url - url of sitemap page
+            2. allowed_extensions - to get link from loc tag,
+                                    It needs to be ended with one of
+                                    allowed extensions (default=['zip', 'gz']).
+        '''
+        # load page
+        self.get(sitemap_url)
+
+        urls = self._parse_sitemap_urls(allowed_extensions)
+
+        print(f'| {len(urls)} urls found |'.center(50, "="))
+
+        # get home page, to avoid multiple file downloads prompt
+        self.home()
+
+        # open pages - download files
+        self.get(urls)
 ####################################################
 # More cool functions here
 
