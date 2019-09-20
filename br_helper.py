@@ -631,6 +631,18 @@ class BrowserHelper:
         '''
         self.press("home")
 
+    def pu(self):
+        '''
+        press page up key to go up one screen
+        '''
+        self.press("page_up")
+
+    def pd(self):
+        '''
+        press page down key to go down one screen
+        '''
+        self.press("page_down")
+
     def _get_current_domain(self):
         '''
         returns current page's domain part
@@ -1057,11 +1069,20 @@ class BrowserHelper:
         '''
         self.js(script)
 
-    def _game(self):
+    def dino(self):
         '''
         start chrome dinosaur game
         '''
         self.get("chrome://dino", add_protocol=False)
+
+    def mario(self):
+        '''
+        start super mario bross game
+        from site:
+            https://supermariobros.io/full-screen-mario/mario.html
+        '''
+        url = "https://supermariobros.io/full-screen-mario/mario.html"
+        self.get(url)
 
     def screenshot(self, element_or_selector="", image_name="screenshot.png"):
         '''
