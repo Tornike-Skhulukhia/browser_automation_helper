@@ -3,7 +3,8 @@
 ########   Define your driver path here   #######
 #################################################
 
-DRIVER_PATH = ""
+""" Line Changed Automatically At| Mon Sep 23 12:53:30 2019 """
+DRIVER_PATH = "/home/tornike/Desktop/bin/chromedriver"
 
 #################################################
 
@@ -531,6 +532,34 @@ class BrowserHelper:
                 answer = answer[0]
 
         return answer
+
+    def select(self, select_it, by="text", select_tag="select"):
+        '''
+            select specific option from select tag.
+            
+            arguments:
+                1. select_it - actual index, value or text we are looking for.
+                                +support of negative indexing(It is Python :-) )
+
+                2. by - "index", "value" or "text" 
+                        use whichever you want(default="text"),
+                        with appropriate data type for each one,
+                        (index - INTEGER, value - STRING, text - STRING)
+
+                3. select_tag - selector for select tag(default="select")
+        '''
+        from selenium.webdriver.support.ui import Select
+
+        select = Select(self._css1_xpath1(select_tag))
+
+        # to allow negative indexing
+        if by == "index":
+            if select_it < 0:
+                select_it = len(select.options) - abs(select_it)
+
+        call_me = f'select_by_{by if by != "text" else "visible_text"}'
+        
+        getattr(select, call_me)(select_it)
 
     def get(self, url_or_urls, add_protocol=True, callback=False):
         '''
@@ -1351,15 +1380,20 @@ class BrowserHelper:
         '''
         # breakpoint()
         import selenium
-        exc = selenium.common.exceptions.ElementClickInterceptedException
+
+        temp = selenium.common.exceptions
+        exc = [
+            temp.ElementClickInterceptedException,
+            temp.ElementNotInteractableException]
+
 
         try:
             elem.click()
-        except exc:
+        except (exc[0], exc[1]):
             if try_parent:
                 try:
                     elem.find_element_by_xpath("parent::*").click()
-                except exc:
+                except (exc[0], exc[1]):
                     self.br.execute_script("arguments[0].click()", elem)
             else:
                 self.br.execute_script("arguments[0].click()", elem)
@@ -1451,6 +1485,8 @@ class BrowserHelper:
 
         # open pages - download files
         self.get(urls)
+
+
 ####################################################
 # More cool functions here
 
