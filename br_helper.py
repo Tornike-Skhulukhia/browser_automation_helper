@@ -18,7 +18,7 @@ class BrowserHelper:
     class to help automate browser
     '''
     def __init__(self,                 browser="chrome",
-                 driver_path=None,     options=False,
+                 driver_path=None,     options=False,       add_arguments=[],
                  log_file="log.txt"):
         '''
         initialize object with given arguments:
@@ -55,7 +55,11 @@ class BrowserHelper:
 
                         see _add_necessary_options for more details.
 
-            4. log_file - log file to use in self.log method.
+            4. add_arguments - list of arguments to add with selenium browser 
+                            instance's add_argument method, before launching browser.
+                            (default=[])
+
+            5. log_file - log file to use in self.log method.
                          default=("log.txt")
         '''
         if driver_path is None:
@@ -81,6 +85,7 @@ class BrowserHelper:
         self.keys = ""
 
         self.options = options  # supply dictionary
+        self.add_arguments = add_arguments
         self.which_browser = browser
 
         # # experimental
@@ -246,6 +251,10 @@ class BrowserHelper:
 
         # things to change by default
         self.browser_options.add_argument("--disable-infobars")
+
+        # add add options
+        for argument in self.add_arguments:
+            self.browser_options.add_argument(argument)
 
         if self.options:
             for key, value in self.options.items():
