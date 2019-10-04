@@ -3,8 +3,7 @@
 ########   Define your driver path here   #######
 #################################################
 
-""" Line Changed Automatically At| Mon Sep 23 12:53:30 2019 """
-DRIVER_PATH = "/home/tornike/Desktop/bin/chromedriver"
+DRIVER_PATH = ""
 
 #################################################
 
@@ -88,11 +87,6 @@ class BrowserHelper:
         self.add_arguments = add_arguments
         self.which_browser = browser
 
-        # # experimental
-        # import selenium
-        # selenium.webdriver.remote.webelement.WebElement.click_ = self.click
-
-
     def __repr__(self):
         ''' Representation '''
         text = (f"< BrowserHelper (browser={repr(self.which_browser)}, "
@@ -109,7 +103,7 @@ class BrowserHelper:
         '''
         replace current files DRIVER_PATH line,
         if user gives this information when needed,
-        to not repeat same process more than once
+        to not repeat same process more than once.
 
         adds appropriate string in line
         DRIVER_PATH = ""
@@ -147,7 +141,7 @@ class BrowserHelper:
         '''
         Search file system and get driver files locations.
 
-        then as, which one to use, if none found, tell about it,
+        Then ask, which one to use, if none found, tell about it,
         and try to get this info from user, otherwise exit.
 
         P.s. here we have an infinite loop.
@@ -179,8 +173,7 @@ class BrowserHelper:
                     # for now, avoid complications with system types
                     if link.split(".")[-1] == "exe" or \
                             any([link.endswith(j) for j in drivers.values()]):
-                        # path seems to not working correctly
-                        # (or we should read its docs),
+                        # path seems to be not working correctly
                         # so make check
                         possible_drivers.append(i)
         except OSError:
@@ -473,6 +466,7 @@ class BrowserHelper:
 
             2. ignore_case - set to True to ignore upper
                             and lower cases(default=False)
+
             3. tag - set to valid html tag to narrow down results
                     (ex: p, div, span) (default="*" - (everything))
 
@@ -555,16 +549,16 @@ class BrowserHelper:
                         with appropriate data type for each one,
                         (index - INTEGER, value - STRING, text - STRING)
 
-                3. select_tag - selector for select tag(default="select")
+                3. select_tag - selector for select tag(
+                        default="select", so it uses first select tag on page)
         '''
         from selenium.webdriver.support.ui import Select
 
         select = Select(self._css1_xpath1(select_tag))
 
         # to allow negative indexing
-        if by == "index":
-            if select_it < 0:
-                select_it = len(select.options) - abs(select_it)
+        if by == "index" and select_it < 0:
+            select_it = len(select.options) - abs(select_it)
 
         call_me = f'select_by_{by if by != "text" else "visible_text"}'
         
@@ -596,7 +590,6 @@ class BrowserHelper:
                           we may use it to parse and save data somewhere.
         '''
         # initialize browser
-        # breakpoint()
         self._initialize_browser_if_necessary()
 
         # convert to list if it is string
@@ -1141,7 +1134,6 @@ class BrowserHelper:
         '''
         from PIL import Image
         from io import BytesIO
-        # import selenium
 
         # webelement case
         if isinstance(element_or_selector,
@@ -1495,23 +1487,3 @@ class BrowserHelper:
         # open pages - download files
         self.get(urls)
 
-
-####################################################
-# More cool functions here
-
-# possible ones:
-
-
-'''
-    . dynamic graph that shows download speeds
-        (for multiple browser instances case)
-
-    . more reliable events
-        (in some cases, clicks/presses do not work)
-    . captcha solver/s(but it seems more like independent project)
-
-'''
-####################################################
-# # test
-# br = BrowserHelper()
-# br.get(["finder.ge"])
