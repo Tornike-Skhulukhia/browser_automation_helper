@@ -3,8 +3,7 @@
 ########   Define your driver path here   #######
 #################################################
 
-""" Line Changed Automatically At| Mon Sep 23 12:53:30 2019 """
-DRIVER_PATH = "/home/tornike/Desktop/bin/chromedriver"
+DRIVER_PATH = ""
 
 #################################################
 
