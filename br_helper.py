@@ -1048,15 +1048,12 @@ class BrowserHelper:
                         status = True
                 except:
                     self._print_error()
-                    breakpoint()
             # our prediction case
             else:
                 if not self._css_xpath(_selectors["password"], True):
                     status = True
         except:
             self._print_error()
-            breakpoint()
-
         return status
 
     def r(self):
@@ -1125,14 +1122,15 @@ class BrowserHelper:
     def screenshot(self, element_or_selector="", image_name="screenshot.png"):
         '''
         Save screenshot of full page or part of it.
-        # Needs some fixes to work in all cases(ex: images) #
+        # Needs some fixes to correctly work in all cases
+        (mostly for parts of a webpage, ex: images) #
 
         arguments:
             1. element_or_selector - WebElement object or selector
                                     (xpath or css) to find element and
                                     then save its screenshot.
 
-                                    If set to empty string
+                                    If set to empty string ("")
                                     (which is default argument),
                                     full body's screenshot will be saved.
 
@@ -1150,7 +1148,7 @@ class BrowserHelper:
 
         # empty string case - save full page
         elif element_or_selector == "":
-            self.br.save_screenshot(image_name)
+            self.css1("body").screenshot(image_name)
             return
 
         # specific element case
@@ -1497,21 +1495,5 @@ class BrowserHelper:
 
 
 ####################################################
-# More cool functions here
-
-# possible ones:
-
-
-'''
-    . dynamic graph that shows download speeds
-        (for multiple browser instances case)
-
-    . more reliable events
-        (in some cases, clicks/presses do not work)
-    . captcha solver/s(but it seems more like independent project)
-
-'''
+# More cool functions here 
 ####################################################
-# # test
-# br = BrowserHelper()
-# br.get(["finder.ge"])
