@@ -1485,10 +1485,6 @@ class BrowserHelper:
         # open pages - download files
         self.get(urls)
 
-<<<<<<< HEAD
-
 ####################################################
 # More cool functions here 
 ####################################################
-=======
->>>>>>> 96fd6b89409b35dc4b470d45c3bdb63e49af1a92
