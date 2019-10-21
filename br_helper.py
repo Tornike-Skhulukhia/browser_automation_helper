@@ -696,7 +696,7 @@ class BrowserHelper:
         else:
             raise Exception("Please load browser first!")
 
-    def log_info(self, text):
+    def log_info(self, text, also_print=True):
         '''
             Log given text in file that is assigned as log_file property.
 
@@ -705,10 +705,15 @@ class BrowserHelper:
 
             arguments:
                 1. text - text to log/save in file
+                2. also_print - set to False if you do not want also
+                                to print this text to screen(default=True)
         '''
         with open(self.log_file, "a") as f:
             line = f'{time.ctime()} | {text}\n'
             f.write(line)
+
+        if also_print:
+            print(line)
 
     def press(self, key, elem=False):
         '''
