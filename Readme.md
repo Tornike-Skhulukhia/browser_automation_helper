@@ -1,7 +1,7 @@
-# Automate browser the <font color="lime">easy</font> way.
+# Automate browser the easy way.
 ### Python library to automate webbrowser.
 
-**<font color="lime">Most functionality is tested on Chrome and Firefox, but may work on others as well.</font>**  
+**Most functionality is tested on Chrome and Firefox, but may work on others as well.**  
 This library made my working process of browser automation much easier,
 hope it will help your team too.  
 Here you can see short information about the module, but to see what is available,  
@@ -16,7 +16,7 @@ make sure to check documentation of available functions.
 
 ```python
 # at first, initialize BrowserHelper object
-from br_helper import BrowserHelper
+from br_helper.br_helper import BrowserHelper
 
 br =  BrowserHelper(browser="chrome", # you can also use firefox here
                     driver_path='/home/tornike/Desktop/bin/chromedriver')
@@ -206,9 +206,15 @@ Here is an examples of using it, with explanations:
 '''
     Code to download multiple files using given urls.
     Each given url should return file directly, when opened.
+
+    Please take into account the fact that in this example 
+    we use very simple lambda expression as our callback argument
+    to just print urls, not waiting until downloads finish,
+    so in real cases, you may want to use a bit more complex function,
+    which also waits before downloads are completed.
 '''
 
-from br_helper import MultiBr
+from br_helper.br_helper import MultiBr
 import os
 
 # url pattern to use (I found that site recently to test the functionality)
@@ -253,7 +259,7 @@ mbr.get_with_multi(
     # make sure that in br_helper you have already saved driver location #
 '''
 
-from multi_br import MultiBr
+from br_helper.br_helper import MultiBr
 import time
 
 # for now, module is mainly designed for get requests
@@ -382,12 +388,10 @@ mbr.get_with_multi(
 ```
 
 # Installation methods
-1. git clone https://github.com/Tornike-Skhulukhia/browser_automation_helper
-2. pip install here_goes_package_name_after_uploading_it_on_pypi
+1. pip install br-helper
+2. git clone https://github.com/Tornike-Skhulukhia/browser_automation_helper
 
 # Dependencies
-
-### Make sure you have already installed following:
 1. selenium
 2. beautifulsoup4
 
