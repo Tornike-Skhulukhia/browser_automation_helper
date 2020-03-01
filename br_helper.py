@@ -498,25 +498,49 @@ class BrowserHelper:
 
         if not ignore_case:
             if exact:
-                sel = f'//{tag}[text() = "{text}"]'
+                sel = (
+                        f'//{tag}[text() = "{text}"]'
+                        f'| //{tag}[@placeholder = "{text}"]'
+                        f'| //{tag}[@value = "{text}"]'
+                        )
             else:
-                sel = f'//{tag}[text()[contains(.,"{text}")]]'
+                sel = (
+                        f'//{tag}[text()[contains(.,"{text}")]]'
+                        f'| //{tag}[contains(@placeholder, "{text}")]'
+                        f'| //{tag}[contains(@value, "{text}")]'
+                    )
         else:
             uppers = "".join(sorted(set(text.upper())))
             lowers = "".join(sorted(set(text.lower())))
 
             if exact:
-                sel = (f"""//{tag}[translate(text(), '{uppers}', """
-                       f"""'{lowers}') = '{text.lower()}']""")
+                sel = (
+                        f"""//{tag}[translate(text(), '{uppers}', """
+                        f"""'{lowers}') = '{text.lower()}']"""
+                    
+                        f"""| //{tag}[translate(@value, '{uppers}', """
+                        f"""'{lowers}') = '{text.lower()}']"""
+
+                        f"""| //{tag}[translate(@placeholder, '{uppers}', """
+                        f"""'{lowers}') = '{text.lower()}']"""
+
+                    )
             else:
-                sel = (f"""//{tag}[text()[contains(translate(., '{uppers}', """
-                       f"""'{lowers}'), '{text.lower()}')]]""")
+                sel = (
+                        f"""//{tag}[text()[contains(translate(., '{uppers}', """
+                        f"""'{lowers}'), '{text.lower()}')]]"""
+
+                        f"""| //{tag}[@value[contains(translate(., '{uppers}', """
+                        f"""'{lowers}'), '{text.lower()}')]]"""
+
+                        f"""| //{tag}[@placeholder[contains(translate(., '{uppers}', """
+                        f"""'{lowers}'), '{text.lower()}')]]"""
+                    )
 
         # print selector if we want
         if print_selector:
             print(sel)
 
-        # breakpoint()
         # highlight selection
         if highlight:
             self._change_selection_look(sel, print_command)
@@ -539,6 +563,7 @@ class BrowserHelper:
 
         return answer
 
+    
     def select(self, select_it, by="text", select_tag="select"):
         '''
             select specific option from select tag.
