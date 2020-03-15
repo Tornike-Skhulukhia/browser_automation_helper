@@ -94,6 +94,7 @@ class BrowserHelper:
 
         self.options = options  # supply dictionary
         self.add_arguments = add_arguments
+        self.experimental_options = experimental_options
         self.which_browser = browser
 
     def __repr__(self):
