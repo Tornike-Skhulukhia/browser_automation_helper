@@ -4,8 +4,11 @@ import json
 import os
 import time
 
+import selenium
+
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
 
 #################################################
@@ -97,6 +100,7 @@ class BrowserHelper:
         self.experimental_options = experimental_options
         self.which_browser = browser
 
+
     def __repr__(self):
         ''' Representation '''
         text = (f"< BrowserHelper (browser={repr(self.which_browser)}, "
@@ -104,10 +108,12 @@ class BrowserHelper:
                 f"options={repr(self.options)}) > ")
         return text
 
+
     def __str__(self):
         ''' What to print '''
         text = f'<BrowserHelper object for {self.which_browser}>'
         return text
+
 
     def _replace_driver_path_line_if_necessary(self, driver_path):
         '''
@@ -146,6 +152,7 @@ class BrowserHelper:
         with open(curr_file, "w") as f: f.write(content)
         print(f"Driver location {self.driver_path} saved".center(70))
         # be careful here
+
 
     def _get_driver(self, browser):
         '''
@@ -226,6 +233,7 @@ class BrowserHelper:
 
             print(f"Thanks,")
             return answer
+
 
     def _add_necessary_options(self, args):
         '''
@@ -326,13 +334,13 @@ class BrowserHelper:
 
                     raise Exception(exc_text)
 
+
     def _initialize_browser_if_necessary(self):
         '''
         initialize(open and assign to object) browser if necessary
         '''
         if not self.br:
             # for later use
-            from selenium.webdriver.common.keys import Keys
 
             self._add_necessary_options(self.options)
             # breakpoint()
@@ -346,9 +354,11 @@ class BrowserHelper:
                                             options=self.browser_options)
             self.keys = Keys
 
+
     def close(self):
         '''just close browser'''
         self.br.quit()
+
 
     def _get_interactables(self, webelements):
         '''
@@ -358,6 +368,7 @@ class BrowserHelper:
         # method needs refinement #
         '''
         return [i for i in webelements if i.is_displayed() and i.is_enabled()]
+
 
     def css(self,            selector,                 interactable=False,
             highlight=False, print_command=False):
@@ -389,6 +400,7 @@ class BrowserHelper:
 
         return matches
 
+
     def css1(self,            selector,                 interactable=False,
              highlight=False, print_command=False):
         '''
@@ -413,6 +425,7 @@ class BrowserHelper:
         elem = self.css(
                 selector, interactable, highlight, print_command)[0]
         return elem
+
 
     def xpath(self,              selector,               interactable=False,
               highlight=False,   print_command=False):
@@ -444,6 +457,7 @@ class BrowserHelper:
 
         return matches
 
+
     def xpath1(self,              selector,               interactable=False,
                highlight=False,   print_command=False):
         '''
@@ -465,6 +479,7 @@ class BrowserHelper:
         '''
         elem = self.xpath(selector, interactable)[0]
         return elem
+
 
     def find(self,                      text,
              ignore_case=False,         tag="*",
@@ -603,6 +618,7 @@ class BrowserHelper:
         
         getattr(select, call_me)(select_it)
 
+
     def get(self, url_or_urls, add_protocol=True, callback=False):
         '''
         load url page.
@@ -653,11 +669,13 @@ class BrowserHelper:
                 if len(url_or_urls) > 1:
                     print(f'{index + 1:^4}/{len(url_or_urls):^4}| {url} | + ')
 
+
     def _b(self):
         '''
         go back in history
         '''
         self.br.back()
+
 
     def _f(self):
         '''
@@ -665,11 +683,13 @@ class BrowserHelper:
         '''
         self.br.forward()
 
+
     def down(self):
         '''
         press down key
         '''
         self.press("down")
+
 
     def up(self):
         '''
@@ -677,11 +697,13 @@ class BrowserHelper:
         '''
         self.press("up")
 
+
     def right(self):
         '''
         press right key
         '''
         self.press("right")
+
 
     def left(self):
         '''
@@ -689,11 +711,13 @@ class BrowserHelper:
         '''
         self.press("left")
 
+
     def bottom(self):
         '''
         press end key to go to bottom of page
         '''
         self.press("end")
+
 
     def top(self):
         '''
@@ -701,17 +725,20 @@ class BrowserHelper:
         '''
         self.press("home")
 
+
     def pu(self):
         '''
         press page up key to go up one screen
         '''
         self.press("page_up")
 
+
     def pd(self):
         '''
         press page down key to go down one screen
         '''
         self.press("page_down")
+
 
     def _get_current_domain(self):
         '''
@@ -722,6 +749,7 @@ class BrowserHelper:
                     r"(.*\://.*?)/", self.br.current_url).group(1)
 
         return domain
+
 
     def home(self):
         '''
@@ -734,6 +762,7 @@ class BrowserHelper:
             self.get(domain, add_protocol=False)
         else:
             raise Exception("Please load browser first!")
+
 
     def log_info(self, text, also_print=True):
         '''
@@ -754,6 +783,7 @@ class BrowserHelper:
         if also_print:
             print(line)
 
+
     def press(self, key, elem=False):
         '''
             Send keys to current window elements.
@@ -773,12 +803,14 @@ class BrowserHelper:
         key = getattr(self.keys, key.upper())
         elem.send_keys(key)
 
+
     def show_downloads(self):
         '''
         show downloads tab in browser,
         for now, works on chrome only.
         '''
         self.get("chrome://downloads/", add_protocol=False)
+
 
     def show_history(self, q=None):
         '''
@@ -794,6 +826,7 @@ class BrowserHelper:
             url += f"?q={quote(q)}"
 
         self.get(url, add_protocol=False)
+
 
     def show_settings(self, q=None):
         '''
@@ -811,6 +844,7 @@ class BrowserHelper:
 
         self.get(url, add_protocol=False)
 
+
     def show_infos(self):
         '''
         show information about browser,
@@ -820,6 +854,7 @@ class BrowserHelper:
         '''
         self.get("chrome://version/", add_protocol=False)
 
+
     def ip(self):
         '''
         make duck duck go search to see
@@ -828,6 +863,7 @@ class BrowserHelper:
         url = "https://duckduckgo.com/?q=my+ip&t=h_&ia=answer"
         self.get(url)
 
+
     def speed(self):
         '''
         go to website that checks internet speed
@@ -835,6 +871,7 @@ class BrowserHelper:
         '''
         url = "https://fast.com"
         self.get(url)
+
 
     def bcss(self, selector):
         '''
@@ -846,6 +883,7 @@ class BrowserHelper:
         self._soup = bs(self.br.page_source, "lxml")
         return self._soup.select(selector)
 
+
     def bcss1(self, selector):
         '''
         bs4 css1 selector method.
@@ -855,11 +893,13 @@ class BrowserHelper:
         '''
         return self.bcss(selector)[0]
 
+
     def js(self, comm):
         '''
         execute given command with javascript and get returned value
         '''
         return self.br.execute_script(comm)
+
 
     def zoom(self, to_percent):
         '''
@@ -903,6 +943,7 @@ class BrowserHelper:
         self.br.execute_script(
             f"arguments[0].setAttribute('style','{full_style}')", element)
 
+
     def google(self, s=None, domain="com"):
         '''
             Google given text with
@@ -925,6 +966,7 @@ class BrowserHelper:
             url = f'google.{domain}/search?q={q}'
 
         self.get(url)
+
 
     def duck(self, s=None):
         '''
@@ -949,6 +991,7 @@ class BrowserHelper:
 
         self.get(url)
 
+
     def _css_xpath(self, selector, interactable=False):
         '''
             gets css or xpath selector method based on selector
@@ -962,6 +1005,7 @@ class BrowserHelper:
         method = self.xpath if selector.startswith("/") else self.css
         return method(selector, interactable)
 
+
     def _css1_xpath1(self, selector, interactable=False):
         '''
             gets css or xpath selector method based on selector
@@ -974,12 +1018,14 @@ class BrowserHelper:
         '''
         return self._css_xpath(selector, interactable)[0]
 
+
     def _print_error(self):
         '''
         prints error using traceback module's format_exc method
         '''
         import traceback
         print(traceback.format_exc())
+
 
     def login(self,             url,       login_info=("username", "password"),
               selectors=None,   seconds=1):
@@ -1093,11 +1139,13 @@ class BrowserHelper:
             self._print_error()
         return status
 
+
     def r(self):
         '''
         refresh page
         '''
         self.br.refresh()
+
 
     def _editable(self):
         '''
@@ -1106,6 +1154,7 @@ class BrowserHelper:
         self.js('if (document.designMode == "on")'
                 '{document.designMode = "off"}'
                 ' else {document.designMode = "on"}')
+
 
     def _ba(self):
         '''
@@ -1122,6 +1171,7 @@ class BrowserHelper:
             }
         '''
         self.js(script)
+
 
     def _invert(self):
         '''
@@ -1141,11 +1191,13 @@ class BrowserHelper:
         '''
         self.js(script)
 
+
     def dino(self):
         '''
         start chrome dinosaur game
         '''
         self.get("chrome://dino", add_protocol=False)
+
 
     def mario(self):
         '''
@@ -1156,6 +1208,7 @@ class BrowserHelper:
         url = "https://supermariobros.io/full-screen-mario/mario.html"
         self.get(url)
 
+
     def screenshot(self, image_name="screenshot.png"):
         '''
         Take a screenshot of current page
@@ -1165,6 +1218,7 @@ class BrowserHelper:
                             (default='screenshot.png').
         '''
         self.br.save_screenshot(image_name)
+
 
     def _get_js_result_nodes_generation_code(
                                         self,
@@ -1205,6 +1259,7 @@ class BrowserHelper:
             print(answer)
 
         return answer
+
 
     def _change_selection_look(self, css_or_xpath_sel,
                                style="normal", print_command=False):
@@ -1350,6 +1405,7 @@ class BrowserHelper:
 
         self.js(styles_js)
 
+
     def _dance(self, selector="body", interval=0.3, print_command=False):
         '''
         fun method to change looks of each matched
@@ -1366,6 +1422,7 @@ class BrowserHelper:
                                         style="crazy",
                                         print_command=print_command)
 
+
     def click(self, elem, try_parent=True):
         '''
         click on element, iven if selenium says,
@@ -1379,8 +1436,6 @@ class BrowserHelper:
 
             # simplify try-excepts later #
         '''
-        # breakpoint()
-        import selenium
 
         temp = selenium.common.exceptions
         exc = [
@@ -1398,6 +1453,7 @@ class BrowserHelper:
                     self.br.execute_script("arguments[0].click()", elem)
             else:
                 self.br.execute_script("arguments[0].click()", elem)
+
 
     def wait_until_disappears(self,
                               selector,
@@ -1423,6 +1479,7 @@ class BrowserHelper:
             time.sleep(check_interval)
         return
 
+
     def _sitemap(self):
         '''
         get sitemap of current website
@@ -1430,12 +1487,14 @@ class BrowserHelper:
         url = f'{self._get_current_domain()}/sitemap.xml'
         self.get(url, False)
 
+
     def _robots(self):
         '''
         get robots.txt file of current website
         '''
         url = f'{self._get_current_domain()}/robots.txt'
         self.get(url, False)
+
 
     def _parse_sitemap_urls(self, allowed_extensions=['zip', 'gz']):
         '''
@@ -1455,6 +1514,7 @@ class BrowserHelper:
             if url.lower().split(".")[-1] in allowed_extensions:
                 urls.append(url)
         return urls
+
 
     def download_sitemap_files(self,
                                sitemap_url,
@@ -1486,6 +1546,7 @@ class BrowserHelper:
 
         # open pages - download files
         self.get(urls)
+
 
 ####################################################
 
@@ -1522,6 +1583,7 @@ class MultiBr:
         extension = 'jl' if save_format.upper() == "JL" else "csv"
         self.filename = f"data_{time.ctime()}.{extension}"
 
+
     def _split_urls_list(self, urls, number):
         '''
         split given urls list(not set!) into sublists, each one
@@ -1548,6 +1610,7 @@ class MultiBr:
             lists[num].extend(add_me)
 
         return lists
+
 
     def _add_csv_line_in_csv_file(self, headers, text_items):
         '''
@@ -1586,6 +1649,7 @@ class MultiBr:
                     # print("written row", row_items)
                     writer.writerow(row_items)
 
+
     def _add_line_in_jl_file(self, text, indent=True):
         '''
         add line in json lines file,
@@ -1600,6 +1664,7 @@ class MultiBr:
             f.write(json.dumps(
                         text, ensure_ascii=False,
                         indent=4 if indent else None) + "\n")
+
 
     def _open_new_browser_and_get_pages(
                                     self,
@@ -1641,7 +1706,6 @@ class MultiBr:
 
         '''
 
-        # breakpoint()N:
         if meta is not False:
             if len(meta) != len(urls):
                 raise TypeError(
@@ -1681,6 +1745,7 @@ class MultiBr:
 
         # close browser after all urls are loaded
         br.close()
+
 
     def get_with_multi(self,
                        multi_type,
