@@ -278,6 +278,8 @@ class BrowserHelper:
             self.capabilities = DesiredCapabilities.CHROME if self.which_browser == "chrome" else DesiredCapabilities.FIREFOX  
             for key, value in self.desired_capabilities.items():
                 self.capabilities[key] = value
+        else:
+            self.capabilities = {}
 
 
         # add experimental options
