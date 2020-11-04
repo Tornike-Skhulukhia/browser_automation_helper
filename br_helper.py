@@ -9,6 +9,7 @@ import selenium
 from bs4 import BeautifulSoup as bs
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 #################################################
@@ -22,10 +23,10 @@ class BrowserHelper:
     '''
     class to help automate browser
     '''
-    def __init__(self,                 browser="chrome",
-                 driver_path=None,     options=False,       
-                 add_arguments=[],     experimental_options=[],
-                 log_file="log.txt"):
+    def __init__(self,                      browser="chrome",
+                 driver_path=None,          options=False,       
+                 add_arguments=[],          desired_capabilities={},
+                 experimental_options=[],   log_file="log.txt"):
         '''
         initialize object with given arguments:
             1. browser - browser to work with("chrome" or "firefox").
@@ -64,13 +65,16 @@ class BrowserHelper:
             4. add_arguments - list of arguments to add with selenium browser 
                             instance's add_argument method, before launching browser.
                             (default=[])
+
+            5. desired_capabilities - dictionary with keys and values to add 
+                                    as desired capabilities
             
-            5. experimental_options - list of arguments(list of tuples)
+            6. experimental_options - list of arguments(list of tuples)
                                     to add with selenium browser instance's
                                     add_experimental_options method, before launching browser
                                 (default=[]).
             
-            6. log_file - log file to use in self.log method.
+            7. log_file - log file to use in self.log method.
                          default=("log.txt")
         '''
         if driver_path is None:
@@ -98,6 +102,7 @@ class BrowserHelper:
         self.options = options  # supply dictionary
         self.add_arguments = add_arguments
         self.experimental_options = experimental_options
+        self.desired_capabilities = desired_capabilities
         self.which_browser = browser
 
 
@@ -235,7 +240,7 @@ class BrowserHelper:
             return answer
 
 
-    def _add_necessary_options(self, args):
+    def _add_necessary_options(self):
         '''
         change/add options to browser instance,
         such as custom download location,
@@ -266,7 +271,15 @@ class BrowserHelper:
         # add options
         for argument in self.add_arguments:
             self.browser_options.add_argument(argument)
-        
+
+        # add desired_capabilities
+        if self.desired_capabilities:
+            # not tested on firefox
+            self.capabilities = DesiredCapabilities.CHROME if self.which_browser == "chrome" else DesiredCapabilities.FIREFOX  
+            for key, value in self.desired_capabilities.items():
+                self.capabilities[key] = value
+
+
         # add experimental options
         for experimental_option in self.experimental_options:
             self.browser_options.add_experimental_option(*experimental_option)
@@ -342,16 +355,17 @@ class BrowserHelper:
         if not self.br:
             # for later use
 
-            self._add_necessary_options(self.options)
-            # breakpoint()
+            self._add_necessary_options()
 
             if self.which_browser == "chrome":
-
                 self.br = webdriver.Chrome(executable_path=self.driver_path,
-                                           options=self.browser_options)
+                                           options=self.browser_options,
+                                           desired_capabilities=self.capabilities)
+
             elif self.which_browser == "firefox":
                 self.br = webdriver.Firefox(executable_path=self.driver_path,
-                                            options=self.browser_options)
+                                            options=self.browser_options,
+                                            desired_capabilities=self.capabilities)
             self.keys = Keys
 
 
