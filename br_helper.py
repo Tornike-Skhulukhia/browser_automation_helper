@@ -1129,7 +1129,8 @@ class BrowserHelper:
             # type data and press login
             elems["username"].send_keys(username)
             elems["password"].send_keys(password)
-            elems["submit"].click()
+            self.click(elems["submit"])
+
             # later add more reliable method
             time.sleep(seconds)
 
